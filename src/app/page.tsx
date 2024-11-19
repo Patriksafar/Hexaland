@@ -5,7 +5,7 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
-const HexagonTile = ({ position, color, height, type, onHover, onUnhover }) => {
+const HexagonTile = ({ position, color, height, type, onHover, onUnhover, onClick }) => {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef()
 
@@ -57,6 +57,11 @@ const HexagonTile = ({ position, color, height, type, onHover, onUnhover }) => {
     if (onUnhover) onUnhover()
   }
 
+  const handleClick = (event) => {
+    event.stopPropagation()
+    if (onClick && type === 'border') onClick(position)
+  }
+
   return (
     <group position={position}>
       <mesh 
@@ -64,6 +69,7 @@ const HexagonTile = ({ position, color, height, type, onHover, onUnhover }) => {
         rotation={[-Math.PI / 2, 0, 0]}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
+        onClick={handleClick}
       >
         <extrudeGeometry 
           args={[
@@ -104,7 +110,7 @@ const HexagonTile = ({ position, color, height, type, onHover, onUnhover }) => {
 
 const MedievalLand = () => {
   const groupRef = useRef()
-  const [hoveredTile, setHoveredTile] = useState(null)
+  const [tiles, setTiles] = useState([])
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -112,10 +118,11 @@ const MedievalLand = () => {
     }
   })
 
-  const tiles = useMemo(() => {
+
+  useMemo(() => {
     const tileData = []
-    const mapSize = 20
-    const borderSize = 1 // Size of the undefined tiles border
+    const mapSize = 10
+    const borderSize = 1
     const tileTypes = ['grass', 'forest', 'castle']
     const hexWidth = 1
     const hexHeight = Math.sqrt(3) / 2
@@ -138,20 +145,45 @@ const MedievalLand = () => {
       }
     }
 
-    return tileData.map((tile, index) => (
-      <HexagonTile
-        key={index}
-        position={tile.pos}
-        color={tile.color}
-        height={tile.height}
-        type={tile.type}
-        onHover={() => setHoveredTile(index)}
-        onUnhover={() => setHoveredTile(null)}
-      />
-    ))
+    setTiles(tileData)
   }, [])
 
-  return <group ref={groupRef}>{tiles}</group>
+  const handleTileClick = (position) => {
+    console.log('Tile clicked:', position)
+
+    setTiles(prevTiles => {
+      const newTiles = [...prevTiles]
+      const index = newTiles.findIndex(tile => 
+        tile.pos[0] === position[0] && 
+        tile.pos[1] === position[1] && 
+        tile.pos[2] === position[2]
+      )
+      if (index !== -1) {
+        newTiles[index] = {
+          ...newTiles[index],
+          type: 'castle',
+          color: '#FFD700',
+          height: 0.2
+        }
+      }
+      return newTiles
+    })
+  }
+
+  return (
+    <group ref={groupRef}>
+      {tiles.map((tile, index) => (
+        <HexagonTile
+          key={index}
+          position={tile.pos}
+          color={tile.color}
+          height={tile.height}
+          type={tile.type}
+          onClick={handleTileClick}
+        />
+      ))}
+    </group>
+  )
 }
 
 export default function Component() {
