@@ -122,7 +122,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
             }
           ]} 
         />
-        <meshStandardMaterial color={hovered && type === 'border' ? '#ff0000' : color} />
+        <meshStandardMaterial color={hovered && type === 'border' ? '#b2d6f8' : color} />
       </mesh>
       {type === 'forest' && (
         <group position={[0, height + 0.2, 0]}>
@@ -195,8 +195,8 @@ const MedievalLand: React.FC = () => {
       if (index !== -1) {
         newTiles[index] = {
           ...newTiles[index],
-          type: 'castle',
-          color: '#FFD700',
+          type: Math.random() < 0.5 ? 'grass' : 'forest',
+          color: "#6EE7B7",
           height: 0.2
         }
 
