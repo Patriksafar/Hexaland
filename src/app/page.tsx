@@ -1,15 +1,18 @@
 'use client'
 
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
-const HexagonTile = ({ position, color, height, type }) => {
+const HexagonTile = ({ position, color, height, type, onHover, onUnhover }) => {
+  const [hovered, setHovered] = useState(false)
+  const meshRef = useRef()
+
   const hexagonShape = useMemo(() => {
     const shape = new THREE.Shape()
     const size = 1 / Math.sqrt(3)
-    const cornerRadius = 0.05 // Adjust this value to change the roundness of corners
+    const cornerRadius = 0.05
     
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i
@@ -24,7 +27,6 @@ const HexagonTile = ({ position, color, height, type }) => {
         shape.moveTo(x1, y1)
       }
       
-      // Calculate control points for quadratic curve
       const midX = (x1 + x2) / 2
       const midY = (y1 + y2) / 2
       const controlX = midX + cornerRadius * (midY - y1)
@@ -39,13 +41,30 @@ const HexagonTile = ({ position, color, height, type }) => {
 
   const treeGeometry = useMemo(() => {
     if (type !== 'forest') return null
-    const geometry = new THREE.ConeGeometry(0.2, 0.4, 8) // Increased segments for smoother cone
+    const geometry = new THREE.ConeGeometry(0.2, 0.4, 8)
     return geometry
   }, [type])
 
+  const handlePointerOver = (event) => {
+    event.stopPropagation()
+    setHovered(true)
+    if (onHover) onHover()
+  }
+
+  const handlePointerOut = (event) => {
+    event.stopPropagation()
+    setHovered(false)
+    if (onUnhover) onUnhover()
+  }
+
   return (
     <group position={position}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh 
+        ref={meshRef}
+        rotation={[-Math.PI / 2, 0, 0]}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      >
         <extrudeGeometry 
           args={[
             hexagonShape, 
@@ -58,7 +77,7 @@ const HexagonTile = ({ position, color, height, type }) => {
             }
           ]} 
         />
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={hovered && type === 'border' ? '#ff0000' : color} />
       </mesh>
       {type === 'forest' && (
         <group position={[0, height + 0.2, 0]}>
@@ -74,7 +93,7 @@ const HexagonTile = ({ position, color, height, type }) => {
             <meshStandardMaterial color="#6B7280" />
           </mesh>
           <mesh position={[0, 0.2, 0]}>
-            <cylinderGeometry args={[0.15, 0.15, 0.2, 8]} /> {/* Increased segments for smoother cylinder */}
+            <cylinderGeometry args={[0.15, 0.15, 0.2, 8]} />
             <meshStandardMaterial color="#4B5563" />
           </mesh>
         </group>
@@ -85,6 +104,7 @@ const HexagonTile = ({ position, color, height, type }) => {
 
 const MedievalLand = () => {
   const groupRef = useRef()
+  const [hoveredTile, setHoveredTile] = useState(null)
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -95,21 +115,24 @@ const MedievalLand = () => {
   const tiles = useMemo(() => {
     const tileData = []
     const mapSize = 20
+    const borderSize = 1 // Size of the undefined tiles border
     const tileTypes = ['grass', 'forest', 'castle']
     const hexWidth = 1
     const hexHeight = Math.sqrt(3) / 2
 
-    for (let q = -Math.floor(mapSize/2); q < Math.ceil(mapSize/2); q++) {
-      for (let r = -Math.floor(mapSize/2); r < Math.ceil(mapSize/2); r++) {
-        const s = -q - r * 1
-        if (Math.max(Math.abs(q), Math.abs(r), Math.abs(s)) < Math.floor(mapSize/2)) {
-          const x = hexWidth * (0.9 * q )
-          const z = hexHeight * (Math.sqrt(1.4) * r + Math.sqrt(1.4)/2 * q)
+    for (let q = -Math.floor((mapSize + borderSize * 2) / 2); q < Math.ceil((mapSize + borderSize * 2) / 2); q++) {
+      for (let r = -Math.floor((mapSize + borderSize * 2) / 2); r < Math.ceil((mapSize + borderSize * 2) / 2); r++) {
+        const s = -q - r
+        const maxCoord = Math.max(Math.abs(q), Math.abs(r), Math.abs(s))
+        if (maxCoord < Math.floor((mapSize + borderSize * 2) / 2)) {
+          const x = hexWidth * (0.9 * q)
+          const z = hexHeight * (Math.sqrt(1.4) * r + Math.sqrt(1.4) / 2 * q)
+          const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
           tileData.push({
-            pos: [x, 0, z],
-            color: '#6EE7B7',
+            pos: isBorderTile ? [x, -0.1, z] : [x, 0, z],
+            color: isBorderTile ? '#ededed' : '#6EE7B7',
             height: 0.1,
-            type: tileTypes[Math.floor(Math.random() * tileTypes.length)]
+            type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)]
           })
         }
       }
@@ -122,6 +145,8 @@ const MedievalLand = () => {
         color={tile.color}
         height={tile.height}
         type={tile.type}
+        onHover={() => setHoveredTile(index)}
+        onUnhover={() => setHoveredTile(null)}
       />
     ))
   }, [])
@@ -131,7 +156,7 @@ const MedievalLand = () => {
 
 export default function Component() {
   return (
-    <div className="w-full h-screen bg-[#e3dada]">
+    <div className="w-full h-screen bg-[#bfc2c1]">
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
         <OrbitControls enableZoom={true} />
