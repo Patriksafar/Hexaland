@@ -9,20 +9,37 @@ const HexagonTile = ({ position, color, height, type }) => {
   const hexagonShape = useMemo(() => {
     const shape = new THREE.Shape()
     const size = 1 / Math.sqrt(3)
+    const cornerRadius = 0.05 // Adjust this value to change the roundness of corners
+    
     for (let i = 0; i < 6; i++) {
       const angle = (Math.PI / 3) * i
-      const x = size * Math.cos(angle)
-      const y = size * Math.sin(angle)
-      if (i === 0) shape.moveTo(x, y)
-      else shape.lineTo(x, y)
+      const nextAngle = (Math.PI / 3) * ((i + 1) % 6)
+      
+      const x1 = size * Math.cos(angle)
+      const y1 = size * Math.sin(angle)
+      const x2 = size * Math.cos(nextAngle)
+      const y2 = size * Math.sin(nextAngle)
+      
+      if (i === 0) {
+        shape.moveTo(x1, y1)
+      }
+      
+      // Calculate control points for quadratic curve
+      const midX = (x1 + x2) / 2
+      const midY = (y1 + y2) / 2
+      const controlX = midX + cornerRadius * (midY - y1)
+      const controlY = midY - cornerRadius * (midX - x1)
+      
+      shape.quadraticCurveTo(controlX, controlY, x2, y2)
     }
+    
     shape.closePath()
     return shape
   }, [])
 
   const treeGeometry = useMemo(() => {
     if (type !== 'forest') return null
-    const geometry = new THREE.ConeGeometry(0.2, 0.4, 4)
+    const geometry = new THREE.ConeGeometry(0.2, 0.4, 8) // Increased segments for smoother cone
     return geometry
   }, [type])
 
@@ -34,7 +51,10 @@ const HexagonTile = ({ position, color, height, type }) => {
             hexagonShape, 
             { 
               depth: height, 
-              bevelEnabled: false
+              bevelEnabled: true,
+              bevelThickness: 0.02,
+              bevelSize: 0.02,
+              bevelSegments: 5
             }
           ]} 
         />
@@ -54,7 +74,7 @@ const HexagonTile = ({ position, color, height, type }) => {
             <meshStandardMaterial color="#6B7280" />
           </mesh>
           <mesh position={[0, 0.2, 0]}>
-            <cylinderGeometry args={[0.15, 0.15, 0.2, 6]} />
+            <cylinderGeometry args={[0.15, 0.15, 0.2, 8]} /> {/* Increased segments for smoother cylinder */}
             <meshStandardMaterial color="#4B5563" />
           </mesh>
         </group>
@@ -111,7 +131,7 @@ const MedievalLand = () => {
 
 export default function Component() {
   return (
-    <div className="w-full h-screen bg-[#bfc2c1]">
+    <div className="w-full h-screen bg-[#e3dada]">
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
         <OrbitControls enableZoom={true} />
