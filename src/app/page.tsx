@@ -1,13 +1,52 @@
 'use client'
 
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
-const HexagonTile = ({ position, color, height, type, onHover, onUnhover, onClick }) => {
+interface TileData {
+  pos: [number, number, number]
+  color: string
+  height: number
+  type: 'grass' | 'forest' | 'castle' | 'border'
+  q: number
+  r: number
+  s: number
+  isAnimating?: boolean
+}
+
+interface HexagonTileProps {
+  position: [number, number, number]
+  color: string
+  height: number
+  type: 'grass' | 'forest' | 'castle' | 'border'
+  isAnimating?: boolean
+  onHover?: () => void
+  onUnhover?: () => void
+  onClick?: (position: [number, number, number]) => void
+}
+
+const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type, isAnimating, onHover, onUnhover, onClick }) => {
   const [hovered, setHovered] = useState(false)
-  const meshRef = useRef()
+  const meshRef = useRef<THREE.Mesh>(null)
+  const [animationProgress, setAnimationProgress] = useState(0)
+
+  useFrame((state, delta) => {
+    if (isAnimating) {
+      setAnimationProgress((prev) => Math.min(prev + delta * 2, 1))
+    } else {
+      setAnimationProgress(0)
+    }
+  })
+
+  const currentPosition = useMemo(() => {
+    if (isAnimating) {
+      const jumpHeight = Math.sin(animationProgress * Math.PI) * 0.2
+      return [position[0], position[1] + jumpHeight, position[2]]
+    }
+    return position
+  }, [position, isAnimating, animationProgress])
 
   const hexagonShape = useMemo(() => {
     const shape = new THREE.Shape()
@@ -45,25 +84,25 @@ const HexagonTile = ({ position, color, height, type, onHover, onUnhover, onClic
     return geometry
   }, [type])
 
-  const handlePointerOver = (event) => {
+  const handlePointerOver = (event: THREE.Event) => {
     event.stopPropagation()
     setHovered(true)
     if (onHover) onHover()
   }
 
-  const handlePointerOut = (event) => {
+  const handlePointerOut = (event: THREE.Event) => {
     event.stopPropagation()
     setHovered(false)
     if (onUnhover) onUnhover()
   }
 
-  const handleClick = (event) => {
+  const handleClick = (event: THREE.Event) => {
     event.stopPropagation()
     if (onClick && type === 'border') onClick(position)
   }
 
   return (
-    <group position={position}>
+    <group position={currentPosition}>
       <mesh 
         ref={meshRef}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -108,22 +147,12 @@ const HexagonTile = ({ position, color, height, type, onHover, onUnhover, onClic
   )
 }
 
-const MedievalLand = () => {
-  const groupRef = useRef()
-  const [tiles, setTiles] = useState([])
+const MedievalLand: React.FC = () => {
+  const [tiles, setTiles] = useState<TileData[]>([])
 
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += 0.001
-    }
-  })
-
-
-  useMemo(() => {
-    const tileData = []
-    const mapSize = 10
-    const borderSize = 1
-    const tileTypes = ['grass', 'forest', 'castle']
+  const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
+    const tileData: TileData[] = []
+    const tileTypes: ('grass' | 'forest' | 'castle')[] = ['grass', 'forest', 'castle']
     const hexWidth = 1
     const hexHeight = Math.sqrt(3) / 2
 
@@ -136,21 +165,26 @@ const MedievalLand = () => {
           const z = hexHeight * (Math.sqrt(1.4) * r + Math.sqrt(1.4) / 2 * q)
           const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
           tileData.push({
-            pos: isBorderTile ? [x, -0.1, z] : [x, 0, z],
+            pos: [x, isBorderTile ? -0.1 : 0, z],
             color: isBorderTile ? '#ededed' : '#6EE7B7',
             height: 0.1,
-            type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)]
+            type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)],
+            q,
+            r,
+            s,
+            isAnimating: false
           })
         }
       }
     }
+    return tileData
+  }
 
-    setTiles(tileData)
+  useMemo(() => {
+    setTiles(generateTiles(10, 1))
   }, [])
 
-  const handleTileClick = (position) => {
-    console.log('Tile clicked:', position)
-
+  const handleTileClick = (position: [number, number, number]) => {
     setTiles(prevTiles => {
       const newTiles = [...prevTiles]
       const index = newTiles.findIndex(tile => 
@@ -165,20 +199,60 @@ const MedievalLand = () => {
           color: '#FFD700',
           height: 0.2
         }
+
+        // Recalculate border tiles and animate neighbors
+        const { q, r, s } = newTiles[index]
+        const neighbors: [number, number, number][] = [
+          [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
+          [q-1, r+1, s], [q-1, r, s+1], [q, r-1, s+1]
+        ]
+
+        neighbors.forEach(([nq, nr, ns]) => {
+          const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
+          if (neighborIndex !== -1) {
+            // Only animate if the neighbor is not a border tile
+            if (newTiles[neighborIndex].type !== 'border') {
+              newTiles[neighborIndex] = {
+                ...newTiles[neighborIndex],
+                isAnimating: true
+              }
+            }
+          } else {
+            const hexWidth = 1
+            const hexHeight = Math.sqrt(3) / 2
+            const x = hexWidth * (0.9 * nq)
+            const z = hexHeight * (Math.sqrt(1.4) * nr + Math.sqrt(1.4) / 2 * nq)
+            newTiles.push({
+              pos: [x, -0.1, z],
+              color: '#ededed',
+              height: 0.1,
+              type: 'border',
+              q: nq,
+              r: nr,
+              s: ns,
+              isAnimating: false // New border tiles should not animate
+            })
+          }
+        })
       }
       return newTiles
     })
+
+    setTimeout(() => {
+      setTiles(prevTiles => prevTiles.map(tile => ({ ...tile, isAnimating: false })))
+    }, 500)
   }
 
   return (
-    <group ref={groupRef}>
+    <group>
       {tiles.map((tile, index) => (
         <HexagonTile
-          key={index}
+          key={`${tile.q},${tile.r},${tile.s}`}
           position={tile.pos}
           color={tile.color}
           height={tile.height}
           type={tile.type}
+          isAnimating={tile.isAnimating}
           onClick={handleTileClick}
         />
       ))}
