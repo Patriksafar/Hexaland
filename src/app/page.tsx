@@ -2,32 +2,47 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
 interface TileData {
   pos: [number, number, number]
   color: string
   height: number
-  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle'
+  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle' | 'house'
   q: number
   r: number
   s: number
   isAnimating?: boolean
+  isBuilding?: boolean
+  buildProgress?: number
 }
 
 interface HexagonTileProps {
   position: [number, number, number]
   color: string
   height: number
-  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle'
+  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle' | 'house'
   isAnimating?: boolean
+  isBuilding?: boolean
+  buildProgress?: number
   onHover?: () => void
   onUnhover?: () => void
   onClick?: (position: [number, number, number]) => void
 }
 
-const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type, isAnimating, onHover, onUnhover, onClick }) => {
+const HexagonTile: React.FC<HexagonTileProps> = ({ 
+  position, 
+  color, 
+  height, 
+  type, 
+  isAnimating, 
+  isBuilding, 
+  buildProgress = 0, 
+  onHover, 
+  onUnhover, 
+  onClick 
+}) => {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
   const [animationProgress, setAnimationProgress] = useState(0)
@@ -78,10 +93,9 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
     return shape
   }, [])
 
-  // Create a smaller hexagon shape for the hayle type
   const smallHexagonShape = useMemo(() => {
     const shape = new THREE.Shape()
-    const size = (1 / Math.sqrt(3)) * 0.8 // 80% of the original size
+    const size = (1 / Math.sqrt(3)) * 0.8
     const cornerRadius = 0.05
     
     for (let i = 0; i < 6; i++) {
@@ -129,7 +143,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
 
   const handleClick = (event: THREE.Event) => {
     event.stopPropagation()
-    if (onClick && type === 'border') onClick(position)
+    if (onClick) onClick(position)
   }
 
   return (
@@ -153,7 +167,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
             }
           ]} 
         />
-        <meshStandardMaterial color={hovered && type === 'border' ? '#b2d6f8' : color} />
+        <meshStandardMaterial color={hovered && type === 'grass' ? '#b2d6f8' : color} />
       </mesh>
       {type === 'forest' && (
         <group position={[0, height + 0.2, 0]}>
@@ -191,6 +205,18 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
           <meshStandardMaterial color="#FFD700" />
         </mesh>
       )}
+      {(type === 'house' || isBuilding) && (
+        <group position={[0, height + 0.1, 0]}>
+          <mesh position={[0, 0, 0]} scale={[1, buildProgress, 1]}>
+            <boxGeometry args={[0.4, 0.3, 0.4]} />
+            <meshStandardMaterial color="#8B4513" />
+          </mesh>
+          <mesh position={[0, 0.15 * buildProgress, 0]} scale={[1, buildProgress, 1]}>
+            <coneGeometry args={[0.3, 0.2, 4]} />
+            <meshStandardMaterial color="#A52A2A" />
+          </mesh>
+        </group>
+      )}
     </group>
   )
 }
@@ -220,7 +246,9 @@ const MedievalLand: React.FC = () => {
             q,
             r,
             s,
-            isAnimating: false
+            isAnimating: false,
+            isBuilding: false,
+            buildProgress: 0
           })
         }
       }
@@ -228,7 +256,7 @@ const MedievalLand: React.FC = () => {
     return tileData
   }
 
-  useMemo(() => {
+  useEffect(() => {
     setTiles(generateTiles(10, 1))
   }, [])
 
@@ -240,15 +268,30 @@ const MedievalLand: React.FC = () => {
         tile.pos[1] === position[1] && 
         tile.pos[2] === position[2]
       )
-      if (index !== -1) {
-        const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
+      if (index !== -1 && newTiles[index].type === 'grass') {
         newTiles[index] = {
           ...newTiles[index],
-          type: tileTypes[Math.floor(Math.random() * tileTypes.length)],
-          color: "#6EE7B7",
-          height: 0.2
+          isBuilding: true,
+          buildProgress: 0
         }
 
+        // Start building process
+        const buildInterval = setInterval(() => {
+          setTiles(currentTiles => {
+            const updatedTiles = [...currentTiles]
+            const buildingTile = updatedTiles[index]
+            if (buildingTile.buildProgress! < 1) {
+              buildingTile.buildProgress! += 0.1
+            } else {
+              buildingTile.isBuilding = false
+              buildingTile.type = 'house'
+              clearInterval(buildInterval)
+            }
+            return updatedTiles
+          })
+        }, 1000) // Update every second for 10 seconds
+
+        // Animate neighboring tiles
         const { q, r, s } = newTiles[index]
         const neighbors: [number, number, number][] = [
           [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
@@ -257,28 +300,11 @@ const MedievalLand: React.FC = () => {
 
         neighbors.forEach(([nq, nr, ns]) => {
           const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
-          if (neighborIndex !== -1) {
-            if (newTiles[neighborIndex].type !== 'border') {
-              newTiles[neighborIndex] = {
-                ...newTiles[neighborIndex],
-                isAnimating: true
-              }
+          if (neighborIndex !== -1 && newTiles[neighborIndex].type !== 'border') {
+            newTiles[neighborIndex] = {
+              ...newTiles[neighborIndex],
+              isAnimating: true
             }
-          } else {
-            const hexWidth = 1
-            const hexHeight = Math.sqrt(3) / 2
-            const x = hexWidth * (0.9 * nq)
-            const z = hexHeight * (Math.sqrt(1.4) * nr + Math.sqrt(1.4) / 2 * nq)
-            newTiles.push({
-              pos: [x, -0.1, z],
-              color: '#ededed',
-              height: 0.1,
-              type: 'border',
-              q: nq,
-              r: nr,
-              s: ns,
-              isAnimating: false
-            })
           }
         })
       }
@@ -292,7 +318,7 @@ const MedievalLand: React.FC = () => {
 
   return (
     <group>
-      {tiles.map((tile, index) => (
+      {tiles.map((tile) => (
         <HexagonTile
           key={`${tile.q},${tile.r},${tile.s}`}
           position={tile.pos}
@@ -300,6 +326,8 @@ const MedievalLand: React.FC = () => {
           height={tile.height}
           type={tile.type}
           isAnimating={tile.isAnimating}
+          isBuilding={tile.isBuilding}
+          buildProgress={tile.buildProgress}
           onClick={handleTileClick}
         />
       ))}
