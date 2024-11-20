@@ -129,19 +129,19 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     return geometry
   }, [type])
 
-  const handlePointerOver = (_event: THREE.Event) => {
+  const handlePointerOver = () => {
     // event.stopPropagation()
     setHovered(true)
     if (onHover) onHover()
   }
 
-  const handlePointerOut = (_event: THREE.Event) => {
+  const handlePointerOut = () => {
      // event.stopPropagation()
     setHovered(false)
     if (onUnhover) onUnhover()
   }
 
-  const handleClick = (_event: THREE.Event) => {
+  const handleClick = () => {
     // event.stopPropagation()
     if (onClick) onClick(position)
   }
