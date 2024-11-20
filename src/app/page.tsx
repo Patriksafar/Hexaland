@@ -47,7 +47,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const meshRef = useRef<THREE.Mesh>(null)
   const [animationProgress, setAnimationProgress] = useState(0)
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (isAnimating) {
       setAnimationProgress((prev) => Math.min(prev + delta * 2, 1))
     } else {
@@ -129,19 +129,19 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     return geometry
   }, [type])
 
-  const handlePointerOver = (event: THREE.Event) => {
+  const handlePointerOver = (_event: THREE.Event) => {
     // event.stopPropagation()
     setHovered(true)
     if (onHover) onHover()
   }
 
-  const handlePointerOut = (event: THREE.Event) => {
+  const handlePointerOut = (_event: THREE.Event) => {
      // event.stopPropagation()
     setHovered(false)
     if (onUnhover) onUnhover()
   }
 
-  const handleClick = (event: THREE.Event) => {
+  const handleClick = (_event: THREE.Event) => {
     // event.stopPropagation()
     if (onClick) onClick(position)
   }
