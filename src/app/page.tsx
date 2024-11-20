@@ -357,7 +357,7 @@ const MedievalLand: React.FC = () => {
 
   return (
     <group>
-      {tiles.map((tile, index) => (
+      {tiles.map((tile) => (
         <HexagonTile
           key={`${tile.q},${tile.r},${tile.s}`}
           position={tile.pos}
