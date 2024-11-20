@@ -1,7 +1,7 @@
 'use client'
 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei'
+import { OrbitControls, PerspectiveCamera, useGLTF, SoftShadows } from '@react-three/drei'
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
 
@@ -31,7 +31,6 @@ interface HexagonTileProps {
   onClick?: (position: [number, number, number]) => void
 }
 
-
 const HexagonTile: React.FC<HexagonTileProps> = ({ 
   position, 
   color, 
@@ -51,7 +50,32 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
 
   const ForestModel = useCallback(() => {
     const { scene } = useGLTF('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/forest.gltf-JfwNfQ3LGbUAeEbTPuRg03zc6qNdlO.glb')
-    return <primitive object={scene.clone()} scale={[0.4, 0.4, 0.4]} position={[0, 0, 0]} />
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true
+        child.receiveShadow = true
+        if (child.material) {
+          child.material.shadowSide = THREE.FrontSide
+          child.material.side = THREE.DoubleSide
+        }
+      }
+    })
+    return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
+  }, [])
+
+  const HouseModel = useCallback(() => {
+    const { scene } = useGLTF('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/house.gltf-CvyRZxfyBZWdc8r4aMCTFmjfZ7oEMk.glb')
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true
+        child.receiveShadow = true
+        if (child.material) {
+          child.material.shadowSide = THREE.FrontSide
+          child.material.side = THREE.DoubleSide
+        }
+      }
+    })
+    return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
   }, [])
 
   useFrame((state, delta) => {
@@ -147,21 +171,6 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     if (onClick) onClick(position)
   }
 
-  const roofShape = new THREE.Shape()
-  roofShape.moveTo(-0.2, 0)
-  roofShape.lineTo(0.2, 0)
-  roofShape.lineTo(0, 0.2)
-  roofShape.lineTo(-0.2, 0)
-
-  const extrudeSettings = {
-    steps: 2,
-    depth: 0.4,
-    bevelEnabled: true,
-    bevelThickness: 0.02,
-    bevelSize: 0.02,
-    bevelSegments: 5
-  }
-
   return (
     <group position={new THREE.Vector3(...currentPosition)}>
       <mesh 
@@ -170,6 +179,8 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onClick={handleClick}
+        castShadow
+        receiveShadow
       >
         <extrudeGeometry 
           args={[
@@ -183,27 +194,29 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
             }
           ]} 
         />
-        <meshStandardMaterial color={hovered && (type === 'grass' || type === 'border') ? '#67e8b1' : color} />
+        <meshStandardMaterial color={hovered && (type === 'grass' || type === 'border') ? '#6e88e7' : color} />
       </mesh>
       {type === 'forest' && (
         <group position={[0, height, 0]}>
-          <ForestModel />
+          <group rotation={[0, Math.PI / 6.5, 0]}>
+            <ForestModel />
+          </group>
         </group>
       )}
       {type === 'castle' && (
         <group position={[0, height + 0.1, 0]}>
-          <mesh position={[0, 0, 0]}>
+          <mesh position={[0, 0, 0]} castShadow receiveShadow>
             <boxGeometry args={[0.3, 0.3, 0.3]} />
             <meshStandardMaterial color="#6B7280" />
           </mesh>
-          <mesh position={[0, 0.2, 0]}>
+          <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
             <cylinderGeometry args={[0.15, 0.15, 0.2, 8]} />
             <meshStandardMaterial color="#4B5563" />
           </mesh>
         </group>
       )}
       {type === 'hayle' && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, height + 0.02, 0]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, height + 0.02, 0]} castShadow receiveShadow>
           <extrudeGeometry 
             args={[
               smallHexagonShape, 
@@ -220,15 +233,10 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
         </mesh>
       )}
       {(type === 'house' || isBuilding) && (
-        <group position={[0, height + 0.1, 0]}>
-          <mesh position={[0, 0, 0]} scale={[1, buildProgress, 1]}>
-            <boxGeometry args={[0.4, 0.3, 0.4]} />
-            <meshStandardMaterial color="#8B4513" />
-          </mesh>
-          <mesh position={[0, 0.04 + 0.05 * buildProgress, 0]} rotation={[0, 0, 0]} scale={[0.9, 0.8, 0.9]}>
-            <extrudeGeometry args={[roofShape, extrudeSettings]} />
-            <meshStandardMaterial color="#faa370" />
-          </mesh>
+        <group position={[0, height, 0]}>
+          <group rotation={[0, Math.PI / 6.5, 0]}>
+            <HouseModel />
+          </group>
           {(type === 'house' || (isBuilding && buildProgress === 1)) && (
             <group position={[0.1, 0.4, 0.1]}>
               {[...Array(5)].map((_, index) => (
@@ -239,10 +247,6 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
               ))}
             </group>
           )}
-          <mesh position={[0.1, (0.15 + 0.2 * buildProgress), 0.1]} scale={[0.1, 0.2 * buildProgress, 0.1]}>
-            <boxGeometry />
-            <meshStandardMaterial color="#6B7280" />
-          </mesh>
         </group>
       )}
     </group>
@@ -268,7 +272,7 @@ const MedievalLand: React.FC = () => {
           const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
           tileData.push({
             pos: [x, isBorderTile ? -0.1 : 0, z],
-            color: isBorderTile ? '#ededed' : '#6EE7B7',
+            color: isBorderTile ? '#ededed' : '#67e8b1',
             height: 0.1,
             type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)],
             q,
@@ -410,17 +414,33 @@ const MedievalLand: React.FC = () => {
   )
 }
 
+useGLTF.preload('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/house.gltf-CvyRZxfyBZWdc8r4aMCTFmjfZ7oEMk.glb')
+useGLTF.preload('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/forest.gltf-JfwNfQ3LGbUAeEbTPuRg03zc6qNdlO.glb')
+
 export default function Component() {
   return (
     <div className="w-full h-screen bg-[#bfc2c1]">
       <Canvas shadows>
+        <SoftShadows size={25} samples={16} focus={0.5} />
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
         <OrbitControls enableZoom={true} />
-        <ambientLight intensity={0.8} />
-        <pointLight position={[10, 10, 10]} intensity={1.5} castShadow />
-        <directionalLight position={[-5, 8, -5]} intensity={1} castShadow />
-        <hemisphereLight args={["#b1e1ff", "#000000", 0.6]} />
-        <spotLight position={[0, 15, 0]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
+        <ambientLight intensity={0.4} />
+        <directionalLight 
+          position={[-10, 15, -10]} 
+          intensity={1} 
+          castShadow 
+          shadow-mapSize-width={2048} 
+          shadow-mapSize-height={2048}
+          shadow-camera-far={50}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+          shadow-radius={8}
+          shadow-blurSamples={16}
+        />
+        <hemisphereLight args={["#b1e1ff", "#000000", 0.8]} />
+        <pointLight position={[10, 10, 10]} intensity={0.5} />
         <MedievalLand />
       </Canvas>
     </div>
