@@ -1,8 +1,8 @@
 'use client'
 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei'
+import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
 
 interface TileData {
@@ -31,6 +31,7 @@ interface HexagonTileProps {
   onClick?: (position: [number, number, number]) => void
 }
 
+
 const HexagonTile: React.FC<HexagonTileProps> = ({ 
   position, 
   color, 
@@ -46,12 +47,21 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
   const [animationProgress, setAnimationProgress] = useState(0)
+  const [smokeOffset, setSmokeOffset] = useState(0)
+
+  const ForestModel = useCallback(() => {
+    const { scene } = useGLTF('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/forest.gltf-JfwNfQ3LGbUAeEbTPuRg03zc6qNdlO.glb')
+    return <primitive object={scene.clone()} scale={[0.4, 0.4, 0.4]} position={[0, 0, 0]} />
+  }, [])
 
   useFrame((state, delta) => {
     if (isAnimating) {
       setAnimationProgress((prev) => Math.min(prev + delta * 2, 1))
     } else {
       setAnimationProgress(0)
+    }
+    if (type === 'house' || (isBuilding && buildProgress === 1)) {
+      setSmokeOffset((prev) => (prev + delta * 0.05) % 0.5)
     }
   })
 
@@ -123,12 +133,6 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     return shape
   }, [])
 
-  const treeGeometry = useMemo(() => {
-    if (type !== 'forest') return null
-    const geometry = new THREE.ConeGeometry(0.2, 0.4, 8)
-    return geometry
-  }, [type])
-
   const handlePointerOver = () => {
     setHovered(true)
     if (onHover) onHover()
@@ -141,6 +145,21 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
 
   const handleClick = () => {
     if (onClick) onClick(position)
+  }
+
+  const roofShape = new THREE.Shape()
+  roofShape.moveTo(-0.2, 0)
+  roofShape.lineTo(0.2, 0)
+  roofShape.lineTo(0, 0.2)
+  roofShape.lineTo(-0.2, 0)
+
+  const extrudeSettings = {
+    steps: 2,
+    depth: 0.4,
+    bevelEnabled: true,
+    bevelThickness: 0.02,
+    bevelSize: 0.02,
+    bevelSegments: 5
   }
 
   return (
@@ -164,13 +183,11 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
             }
           ]} 
         />
-        <meshStandardMaterial color={hovered && (type === 'grass' || type === 'border') ? '#b2d6f8' : color} />
+        <meshStandardMaterial color={hovered && (type === 'grass' || type === 'border') ? '#67e8b1' : color} />
       </mesh>
-      {type === 'forest' && treeGeometry && (
-        <group position={[0, height + 0.2, 0]}>
-          <mesh geometry={treeGeometry}>
-            <meshStandardMaterial color="#2D7D6F" />
-          </mesh>
+      {type === 'forest' && (
+        <group position={[0, height, 0]}>
+          <ForestModel />
         </group>
       )}
       {type === 'castle' && (
@@ -208,9 +225,23 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
             <boxGeometry args={[0.4, 0.3, 0.4]} />
             <meshStandardMaterial color="#8B4513" />
           </mesh>
-          <mesh position={[0, 0.15 * buildProgress, 0]} scale={[1, buildProgress, 1]}>
-            <coneGeometry args={[0.3, 0.2, 4]} />
-            <meshStandardMaterial color="#A52A2A" />
+          <mesh position={[0, 0.04 + 0.05 * buildProgress, 0]} rotation={[0, 0, 0]} scale={[0.9, 0.8, 0.9]}>
+            <extrudeGeometry args={[roofShape, extrudeSettings]} />
+            <meshStandardMaterial color="#faa370" />
+          </mesh>
+          {(type === 'house' || (isBuilding && buildProgress === 1)) && (
+            <group position={[0.1, 0.4, 0.1]}>
+              {[...Array(5)].map((_, index) => (
+                <mesh key={index} position={[0, (index * 0.1 + smokeOffset) % 0.5, 0]}>
+                  <sphereGeometry args={[0.03, 8, 8]} />
+                  <meshStandardMaterial color="#C0C0C0" transparent opacity={0.8 - ((index * 0.1 + smokeOffset) % 0.5) * 1.2} />
+                </mesh>
+              ))}
+            </group>
+          )}
+          <mesh position={[0.1, (0.15 + 0.2 * buildProgress), 0.1]} scale={[0.1, 0.2 * buildProgress, 0.1]}>
+            <boxGeometry />
+            <meshStandardMaterial color="#6B7280" />
           </mesh>
         </group>
       )}
@@ -277,7 +308,7 @@ const MedievalLand: React.FC = () => {
             isAnimating: true
           }
 
-          // Add new border tiles
+          // Add new border tiles and animate neighboring tiles
           const { q, r, s } = newTiles[index]
           const neighbors: [number, number, number][] = [
             [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
@@ -303,6 +334,11 @@ const MedievalLand: React.FC = () => {
                 isBuilding: false,
                 buildProgress: 0
               })
+            } else if (newTiles[neighborIndex].type !== 'border') {
+              newTiles[neighborIndex] = {
+                ...newTiles[neighborIndex],
+                isAnimating: true
+              }
             }
           })
         } else if (newTiles[index].type === 'grass') {
@@ -327,7 +363,7 @@ const MedievalLand: React.FC = () => {
               }
               return updatedTiles
             })
-          }, 1000) // Update every second for 10 seconds
+          }, 100) // Update every 100ms for a total of 1 second
 
           // Animate neighboring tiles
           const { q, r, s } = newTiles[index]
