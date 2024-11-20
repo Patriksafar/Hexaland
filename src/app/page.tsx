@@ -9,7 +9,7 @@ interface TileData {
   pos: [number, number, number]
   color: string
   height: number
-  type: 'grass' | 'forest' | 'castle' | 'border'
+  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle'
   q: number
   r: number
   s: number
@@ -20,7 +20,7 @@ interface HexagonTileProps {
   position: [number, number, number]
   color: string
   height: number
-  type: 'grass' | 'forest' | 'castle' | 'border'
+  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle'
   isAnimating?: boolean
   onHover?: () => void
   onUnhover?: () => void
@@ -51,6 +51,37 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
   const hexagonShape = useMemo(() => {
     const shape = new THREE.Shape()
     const size = 1 / Math.sqrt(3)
+    const cornerRadius = 0.05
+    
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i
+      const nextAngle = (Math.PI / 3) * ((i + 1) % 6)
+      
+      const x1 = size * Math.cos(angle)
+      const y1 = size * Math.sin(angle)
+      const x2 = size * Math.cos(nextAngle)
+      const y2 = size * Math.sin(nextAngle)
+      
+      if (i === 0) {
+        shape.moveTo(x1, y1)
+      }
+      
+      const midX = (x1 + x2) / 2
+      const midY = (y1 + y2) / 2
+      const controlX = midX + cornerRadius * (midY - y1)
+      const controlY = midY - cornerRadius * (midX - x1)
+      
+      shape.quadraticCurveTo(controlX, controlY, x2, y2)
+    }
+    
+    shape.closePath()
+    return shape
+  }, [])
+
+  // Create a smaller hexagon shape for the hayle type
+  const smallHexagonShape = useMemo(() => {
+    const shape = new THREE.Shape()
+    const size = (1 / Math.sqrt(3)) * 0.8 // 80% of the original size
     const cornerRadius = 0.05
     
     for (let i = 0; i < 6; i++) {
@@ -143,6 +174,23 @@ const HexagonTile: React.FC<HexagonTileProps> = ({ position, color, height, type
           </mesh>
         </group>
       )}
+      {type === 'hayle' && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, height + 0.02, 0]}>
+          <extrudeGeometry 
+            args={[
+              smallHexagonShape, 
+              { 
+                depth: 0.05, 
+                bevelEnabled: true,
+                bevelThickness: 0.01,
+                bevelSize: 0.01,
+                bevelSegments: 3
+              }
+            ]} 
+          />
+          <meshStandardMaterial color="#FFD700" />
+        </mesh>
+      )}
     </group>
   )
 }
@@ -152,7 +200,7 @@ const MedievalLand: React.FC = () => {
 
   const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
     const tileData: TileData[] = []
-    const tileTypes: ('grass' | 'forest' | 'castle')[] = ['grass', 'forest', 'castle']
+    const tileTypes: ('grass' | 'forest' | 'castle' | 'hayle')[] = ['grass', 'forest', 'castle', 'hayle']
     const hexWidth = 1
     const hexHeight = Math.sqrt(3) / 2
 
@@ -193,14 +241,14 @@ const MedievalLand: React.FC = () => {
         tile.pos[2] === position[2]
       )
       if (index !== -1) {
+        const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
         newTiles[index] = {
           ...newTiles[index],
-          type: Math.random() < 0.5 ? 'grass' : 'forest',
+          type: tileTypes[Math.floor(Math.random() * tileTypes.length)],
           color: "#6EE7B7",
           height: 0.2
         }
 
-        // Recalculate border tiles and animate neighbors
         const { q, r, s } = newTiles[index]
         const neighbors: [number, number, number][] = [
           [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
@@ -210,7 +258,6 @@ const MedievalLand: React.FC = () => {
         neighbors.forEach(([nq, nr, ns]) => {
           const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
           if (neighborIndex !== -1) {
-            // Only animate if the neighbor is not a border tile
             if (newTiles[neighborIndex].type !== 'border') {
               newTiles[neighborIndex] = {
                 ...newTiles[neighborIndex],
@@ -230,7 +277,7 @@ const MedievalLand: React.FC = () => {
               q: nq,
               r: nr,
               s: ns,
-              isAnimating: false // New border tiles should not animate
+              isAnimating: false
             })
           }
         })
