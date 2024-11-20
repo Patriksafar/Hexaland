@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 interface TileData {
@@ -313,9 +313,11 @@ export default function Component() {
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
         <OrbitControls enableZoom={true} />
-        <ambientLight intensity={0.7} />
-        <pointLight position={[5, 5, 5]} intensity={1.2} castShadow />
-        <directionalLight position={[-5, 8, -5]} intensity={0.8} castShadow />
+        <ambientLight intensity={0.8} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} castShadow />
+        <directionalLight position={[-5, 8, -5]} intensity={1} castShadow />
+        <hemisphereLight skyColor="#b1e1ff" groundColor="#000000" intensity={0.6} />
+        <spotLight position={[0, 15, 0]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
         <MedievalLand />
       </Canvas>
     </div>
