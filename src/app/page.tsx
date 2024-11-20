@@ -130,24 +130,24 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   }, [type])
 
   const handlePointerOver = (event: THREE.Event) => {
-    event.stopPropagation()
+    // event.stopPropagation()
     setHovered(true)
     if (onHover) onHover()
   }
 
   const handlePointerOut = (event: THREE.Event) => {
-    event.stopPropagation()
+     // event.stopPropagation()
     setHovered(false)
     if (onUnhover) onUnhover()
   }
 
   const handleClick = (event: THREE.Event) => {
-    event.stopPropagation()
+    // event.stopPropagation()
     if (onClick) onClick(position)
   }
 
   return (
-    <group position={currentPosition}>
+    <group position={new THREE.Vector3(...currentPosition)}>
       <mesh 
         ref={meshRef}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -169,7 +169,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
         />
         <meshStandardMaterial color={hovered && type === 'grass' ? '#b2d6f8' : color} />
       </mesh>
-      {type === 'forest' && (
+      {type === 'forest' && treeGeometry && (
         <group position={[0, height + 0.2, 0]}>
           <mesh geometry={treeGeometry}>
             <meshStandardMaterial color="#2D7D6F" />
