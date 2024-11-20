@@ -47,7 +47,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const meshRef = useRef<THREE.Mesh>(null)
   const [animationProgress, setAnimationProgress] = useState(0)
 
-  useFrame((_state, delta) => {
+  useFrame((state, delta) => {
     if (isAnimating) {
       setAnimationProgress((prev) => Math.min(prev + delta * 2, 1))
     } else {
@@ -130,19 +130,16 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   }, [type])
 
   const handlePointerOver = () => {
-    // event.stopPropagation()
     setHovered(true)
     if (onHover) onHover()
   }
 
   const handlePointerOut = () => {
-     // event.stopPropagation()
     setHovered(false)
     if (onUnhover) onUnhover()
   }
 
   const handleClick = () => {
-    // event.stopPropagation()
     if (onClick) onClick(position)
   }
 
@@ -167,7 +164,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
             }
           ]} 
         />
-        <meshStandardMaterial color={hovered && type === 'grass' ? '#b2d6f8' : color} />
+        <meshStandardMaterial color={hovered && (type === 'grass' || type === 'border') ? '#b2d6f8' : color} />
       </mesh>
       {type === 'forest' && treeGeometry && (
         <group position={[0, height + 0.2, 0]}>
@@ -268,45 +265,87 @@ const MedievalLand: React.FC = () => {
         tile.pos[1] === position[1] && 
         tile.pos[2] === position[2]
       )
-      if (index !== -1 && newTiles[index].type === 'grass') {
-        newTiles[index] = {
-          ...newTiles[index],
-          isBuilding: true,
-          buildProgress: 0
-        }
-
-        // Start building process
-        const buildInterval = setInterval(() => {
-          setTiles(currentTiles => {
-            const updatedTiles = [...currentTiles]
-            const buildingTile = updatedTiles[index]
-            if (buildingTile.buildProgress! < 1) {
-              buildingTile.buildProgress! += 0.1
-            } else {
-              buildingTile.isBuilding = false
-              buildingTile.type = 'house'
-              clearInterval(buildInterval)
-            }
-            return updatedTiles
-          })
-        }, 1000) // Update every second for 10 seconds
-
-        // Animate neighboring tiles
-        const { q, r, s } = newTiles[index]
-        const neighbors: [number, number, number][] = [
-          [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
-          [q-1, r+1, s], [q-1, r, s+1], [q, r-1, s+1]
-        ]
-
-        neighbors.forEach(([nq, nr, ns]) => {
-          const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
-          if (neighborIndex !== -1 && newTiles[neighborIndex].type !== 'border') {
-            newTiles[neighborIndex] = {
-              ...newTiles[neighborIndex],
-              isAnimating: true
-            }
+      if (index !== -1) {
+        if (newTiles[index].type === 'border') {
+          // Extend island
+          const tileTypes: ('grass' | 'forest' | 'castle' | 'hayle')[] = ['grass', 'forest', 'castle', 'hayle']
+          newTiles[index] = {
+            ...newTiles[index],
+            type: tileTypes[Math.floor(Math.random() * tileTypes.length)],
+            color: "#6EE7B7",
+            height: 0.2,
+            isAnimating: true
           }
-        })
+
+          // Add new border tiles
+          const { q, r, s } = newTiles[index]
+          const neighbors: [number, number, number][] = [
+            [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
+            [q-1, r+1, s], [q-1, r, s+1], [q, r-1, s+1]
+          ]
+
+          neighbors.forEach(([nq, nr, ns]) => {
+            const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
+            if (neighborIndex === -1) {
+              const hexWidth = 1
+              const hexHeight = Math.sqrt(3) / 2
+              const x = hexWidth * (0.9 * nq)
+              const z = hexHeight * (Math.sqrt(1.4) * nr + Math.sqrt(1.4) / 2 * nq)
+              newTiles.push({
+                pos: [x, -0.1, z],
+                color: '#ededed',
+                height: 0.1,
+                type: 'border',
+                q: nq,
+                r: nr,
+                s: ns,
+                isAnimating: false,
+                isBuilding: false,
+                buildProgress: 0
+              })
+            }
+          })
+        } else if (newTiles[index].type === 'grass') {
+          // Start building a house
+          newTiles[index] = {
+            ...newTiles[index],
+            isBuilding: true,
+            buildProgress: 0
+          }
+
+          // Start building process
+          const buildInterval = setInterval(() => {
+            setTiles(currentTiles => {
+              const updatedTiles = [...currentTiles]
+              const buildingTile = updatedTiles[index]
+              if (buildingTile.buildProgress! < 1) {
+                buildingTile.buildProgress! += 0.1
+              } else {
+                buildingTile.isBuilding = false
+                buildingTile.type = 'house'
+                clearInterval(buildInterval)
+              }
+              return updatedTiles
+            })
+          }, 1000) // Update every second for 10 seconds
+
+          // Animate neighboring tiles
+          const { q, r, s } = newTiles[index]
+          const neighbors: [number, number, number][] = [
+            [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
+            [q-1, r+1, s], [q-1, r, s+1], [q, r-1, s+1]
+          ]
+
+          neighbors.forEach(([nq, nr, ns]) => {
+            const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
+            if (neighborIndex !== -1 && newTiles[neighborIndex].type !== 'border') {
+              newTiles[neighborIndex] = {
+                ...newTiles[neighborIndex],
+                isAnimating: true
+              }
+            }
+          })
+        }
       }
       return newTiles
     })
@@ -318,7 +357,7 @@ const MedievalLand: React.FC = () => {
 
   return (
     <group>
-      {tiles.map((tile) => (
+      {tiles.map((tile, index) => (
         <HexagonTile
           key={`${tile.q},${tile.r},${tile.s}`}
           position={tile.pos}
