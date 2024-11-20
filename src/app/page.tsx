@@ -9,7 +9,7 @@ interface TileData {
   pos: [number, number, number]
   color: string
   height: number
-  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle' | 'house'
+  type: string
   q: number
   r: number
   s: number
@@ -22,13 +22,37 @@ interface HexagonTileProps {
   position: [number, number, number]
   color: string
   height: number
-  type: 'grass' | 'forest' | 'castle' | 'border' | 'hayle' | 'house'
+  type: string
   isAnimating?: boolean
   isBuilding?: boolean
   buildProgress?: number
   onHover?: () => void
   onUnhover?: () => void
   onClick?: (position: [number, number, number]) => void
+  children?: React.ReactNode
+}
+const buildingTypes = [
+  'house',
+  'mill',
+  'well',
+  'barracks',
+  'market',
+  'watchtower',
+  'mine',
+  'lumbermill',
+  'castle'
+]
+
+const buildingUrls = {
+  house: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/house.gltf-CvyRZxfyBZWdc8r4aMCTFmjfZ7oEMk.glb',
+  mill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mill.gltf-ZX2lvfQwfReGhfS1Ux1p0TPGDLvCxA.glb',
+  well: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/well.gltf-4ESFijtJBFdnnQiZyYCJSjiXAHZFEq.glb',
+  barracks: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/barracks.gltf-Yo1aIn1XDgi3S60WI6NZFuc711dnGc.glb',
+  market: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/market.gltf-3BnnTDw3mUonjGcvDdAHUaWbU6YOqa.glb',
+  watchtower: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/watchtower.gltf-XlLDeJFda3ghdreoKtEROiLnyu4SVt.glb',
+  mine: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mine.gltf-IlfYGKmDADall7pG0zRoN2jIGj5QId.glb',
+  lumbermill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lumbermill.gltf-CjWbZic6KaLsiUEpC8AlRDkuUtTjxQ.glb',
+  castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb'
 }
 
 const HexagonTile: React.FC<HexagonTileProps> = ({ 
@@ -41,7 +65,8 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   buildProgress = 0, 
   onHover, 
   onUnhover, 
-  onClick 
+  onClick,
+  children
 }) => {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
@@ -63,28 +88,13 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
   }, [])
 
-  const HouseModel = useCallback(() => {
-    const { scene } = useGLTF('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/house.gltf-CvyRZxfyBZWdc8r4aMCTFmjfZ7oEMk.glb')
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true
-        child.receiveShadow = true
-        if (child.material) {
-          child.material.shadowSide = THREE.FrontSide
-          child.material.side = THREE.DoubleSide
-        }
-      }
-    })
-    return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
-  }, [])
-
   useFrame((state, delta) => {
     if (isAnimating) {
       setAnimationProgress((prev) => Math.min(prev + delta * 2, 1))
     } else {
       setAnimationProgress(0)
     }
-    if (type === 'house' || (isBuilding && buildProgress === 1)) {
+    if (type !== 'grass' && type !== 'forest' && type !== 'border' && type !== 'hayle') {
       setSmokeOffset((prev) => (prev + delta * 0.05) % 0.5)
     }
   })
@@ -203,18 +213,6 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
           </group>
         </group>
       )}
-      {type === 'castle' && (
-        <group position={[0, height + 0.1, 0]}>
-          <mesh position={[0, 0, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.3, 0.3, 0.3]} />
-            <meshStandardMaterial color="#6B7280" />
-          </mesh>
-          <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[0.15, 0.15, 0.2, 8]} />
-            <meshStandardMaterial color="#4B5563" />
-          </mesh>
-        </group>
-      )}
       {type === 'hayle' && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, height + 0.02, 0]} castShadow receiveShadow>
           <extrudeGeometry 
@@ -232,21 +230,19 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
           <meshStandardMaterial color="#FFD700" />
         </mesh>
       )}
-      {(type === 'house' || isBuilding) && (
+      {(type !== 'grass' && type !== 'forest' && type !== 'border' && type !== 'hayle') && (
         <group position={[0, height, 0]}>
           <group rotation={[0, Math.PI / 6.5, 0]}>
-            <HouseModel />
+            {children}
           </group>
-          {(type === 'house' || (isBuilding && buildProgress === 1)) && (
-            <group position={[0.1, 0.4, 0.1]}>
-              {[...Array(5)].map((_, index) => (
-                <mesh key={index} position={[0, (index * 0.1 + smokeOffset) % 0.5, 0]}>
-                  <sphereGeometry args={[0.03, 8, 8]} />
-                  <meshStandardMaterial color="#C0C0C0" transparent opacity={0.8 - ((index * 0.1 + smokeOffset) % 0.5) * 1.2} />
-                </mesh>
-              ))}
-            </group>
-          )}
+          <group position={[0.1, 0.4, 0.1]}>
+            {[...Array(5)].map((_, index) => (
+              <mesh key={index} position={[0, (index * 0.1 + smokeOffset) % 0.5, 0]}>
+                <sphereGeometry args={[0.03, 8, 8]} />
+                <meshStandardMaterial color="#C0C0C0" transparent opacity={0.8 - ((index * 0.1 + smokeOffset) % 0.5) * 1.2} />
+              </mesh>
+            ))}
+          </group>
         </group>
       )}
     </group>
@@ -258,7 +254,7 @@ const MedievalLand: React.FC = () => {
 
   const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
     const tileData: TileData[] = []
-    const tileTypes: ('grass' | 'forest' | 'castle' | 'hayle')[] = ['grass', 'forest', 'castle', 'hayle']
+    const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
     const hexWidth = 1
     const hexHeight = Math.sqrt(3) / 2
 
@@ -292,6 +288,26 @@ const MedievalLand: React.FC = () => {
     setTiles(generateTiles(10, 1))
   }, [])
 
+
+  const BuildingModel = useCallback(({ type }: { type: string }) => {
+    const { scene } = useGLTF(buildingUrls[type as keyof typeof buildingUrls])
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true
+        child.receiveShadow = true
+        if (child.material) {
+          child.material.shadowSide = THREE.FrontSide
+          child.material.side = THREE.DoubleSide
+        }
+      }
+    })
+    return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
+  }, [])
+
+  const getRandomBuilding = () => {
+    return buildingTypes[Math.floor(Math.random() * buildingTypes.length)]
+  }
+
   const handleTileClick = (position: [number, number, number]) => {
     setTiles(prevTiles => {
       const newTiles = [...prevTiles]
@@ -303,7 +319,7 @@ const MedievalLand: React.FC = () => {
       if (index !== -1) {
         if (newTiles[index].type === 'border') {
           // Extend island
-          const tileTypes: ('grass' | 'forest' | 'castle' | 'hayle')[] = ['grass', 'forest', 'castle', 'hayle']
+          const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
           newTiles[index] = {
             ...newTiles[index],
             type: tileTypes[Math.floor(Math.random() * tileTypes.length)],
@@ -346,11 +362,13 @@ const MedievalLand: React.FC = () => {
             }
           })
         } else if (newTiles[index].type === 'grass') {
-          // Start building a house
+          // Start building a random building
+          const randomBuilding = getRandomBuilding()
           newTiles[index] = {
             ...newTiles[index],
             isBuilding: true,
-            buildProgress: 0
+            buildProgress: 0,
+            type: randomBuilding
           }
 
           // Start building process
@@ -362,7 +380,6 @@ const MedievalLand: React.FC = () => {
                 buildingTile.buildProgress! += 0.1
               } else {
                 buildingTile.isBuilding = false
-                buildingTile.type = 'house'
                 clearInterval(buildInterval)
               }
               return updatedTiles
@@ -408,13 +425,21 @@ const MedievalLand: React.FC = () => {
           isBuilding={tile.isBuilding}
           buildProgress={tile.buildProgress}
           onClick={handleTileClick}
-        />
+        >
+          {(tile.type !== 'grass' && tile.type !== 'forest' && tile.type !== 'border' && tile.type !== 'hayle') && (
+            <BuildingModel type={tile.type} />
+          )}
+        </HexagonTile>
       ))}
     </group>
   )
 }
 
-useGLTF.preload('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/house.gltf-CvyRZxfyBZWdc8r4aMCTFmjfZ7oEMk.glb')
+// Preload all building models
+Object.entries(buildingUrls).forEach(([type, url]) => {
+  useGLTF.preload(url)
+})
+
 useGLTF.preload('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/forest.gltf-JfwNfQ3LGbUAeEbTPuRg03zc6qNdlO.glb')
 
 export default function Component() {

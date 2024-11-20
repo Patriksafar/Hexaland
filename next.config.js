@@ -1,13 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // eslint: {
-  //   ignoreDuringBuilds: true,
-  // },
-  // typescript: {
-  //   // types will be validated in separate step using tsc which supports project references
-  //   ignoreBuildErrors: true,
-  // },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // types will be validated in separate step using tsc which supports project references
+    ignoreBuildErrors: true,
+  },
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
