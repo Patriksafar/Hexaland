@@ -20,7 +20,7 @@ Object.entries(buildingUrls).forEach(([, url]) => {
   useGLTF.preload(url)
 })
 
-type BuildingType = keyof typeof buildingUrls
+export type BuildingType = keyof typeof buildingUrls
 
 const BuildingModel = ({ type }: { type: BuildingType }) => {
   const { scene } = useGLTF(buildingUrls[type])

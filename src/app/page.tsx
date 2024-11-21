@@ -1,11 +1,11 @@
 'use client'
 
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera, useGLTF, SoftShadows } from '@react-three/drei'
-import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls, PerspectiveCamera, SoftShadows } from '@react-three/drei'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
-import BuildingModel  from '@/components/models/building-model'
+import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import ForestModel from '@/components/models/forest-model'
 
 interface TileData {
@@ -34,17 +34,6 @@ interface HexagonTileProps {
   onClick?: (position: [number, number, number]) => void
   children?: React.ReactNode
 }
-const buildingTypes = [
-  'house',
-  'mill',
-  'well',
-  'barracks',
-  'market',
-  'watchtower',
-  'mine',
-  'lumbermill',
-  'castle'
-]
 
 const HexagonTile: React.FC<HexagonTileProps> = ({ 
   position, 
@@ -52,8 +41,6 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   height, 
   type, 
   isAnimating, 
-  isBuilding, 
-  buildProgress = 0, 
   onHover, 
   onUnhover, 
   onClick,
@@ -246,8 +233,9 @@ const MedievalLand: React.FC = () => {
     setTiles(generateTiles(10, 1))
   }, [])
 
+  const buildings = Object.keys(buildingUrls)
   const getRandomBuilding = () => {
-    return buildingTypes[Math.floor(Math.random() * buildingTypes.length)]
+    return buildings[Math.floor(Math.random() * buildings.length)]
   }
 
   const handleTileClick = (position: [number, number, number]) => {
@@ -369,8 +357,8 @@ const MedievalLand: React.FC = () => {
           buildProgress={tile.buildProgress}
           onClick={handleTileClick}
         >
-          {(tile.type !== 'grass' && tile.type !== 'forest' && tile.type !== 'border' && tile.type !== 'hayle') && (
-            <BuildingModel type={tile.type} />
+          {(buildings.includes(tile.type)) && (
+            <BuildingModel type={tile.type as BuildingType} />
           )}
         </HexagonTile>
       ))}
