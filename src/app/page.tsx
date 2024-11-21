@@ -8,8 +8,20 @@ import MedievalLand from '@/components/models/medieval-land'
 export default function Component() {
   return (
     <div className="w-full h-screen bg-[#bfc2c1]">
-      <Canvas shadows>
-        <SoftShadows size={25} samples={16} focus={0.5} />
+      <Canvas
+        shadows="soft"
+        dpr={[1, 2]}
+        performance={{ min: 0.5 }}
+        gl={{ 
+          antialias: false,
+          powerPreference: "high-performance"
+        }}
+      >
+        <SoftShadows 
+          size={10}
+          samples={8}
+          focus={0.5}
+        />
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
         <OrbitControls enableZoom={true} />
         <ambientLight intensity={0.4} />
