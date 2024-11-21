@@ -5,6 +5,9 @@ import { OrbitControls, PerspectiveCamera, useGLTF, SoftShadows } from '@react-t
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
 
+import BuildingModel  from '@/components/models/building-model'
+import ForestModel from '@/components/models/forest-model'
+
 interface TileData {
   pos: [number, number, number]
   color: string
@@ -43,18 +46,6 @@ const buildingTypes = [
   'castle'
 ]
 
-const buildingUrls = {
-  house: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/house.gltf-CvyRZxfyBZWdc8r4aMCTFmjfZ7oEMk.glb',
-  mill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mill.gltf-ZX2lvfQwfReGhfS1Ux1p0TPGDLvCxA.glb',
-  well: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/well.gltf-4ESFijtJBFdnnQiZyYCJSjiXAHZFEq.glb',
-  barracks: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/barracks.gltf-Yo1aIn1XDgi3S60WI6NZFuc711dnGc.glb',
-  market: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/market.gltf-3BnnTDw3mUonjGcvDdAHUaWbU6YOqa.glb',
-  watchtower: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/watchtower.gltf-XlLDeJFda3ghdreoKtEROiLnyu4SVt.glb',
-  mine: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mine.gltf-IlfYGKmDADall7pG0zRoN2jIGj5QId.glb',
-  lumbermill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lumbermill.gltf-CjWbZic6KaLsiUEpC8AlRDkuUtTjxQ.glb',
-  castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb'
-}
-
 const HexagonTile: React.FC<HexagonTileProps> = ({ 
   position, 
   color, 
@@ -71,33 +62,6 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
   const [animationProgress, setAnimationProgress] = useState(0)
-  const [smokeOffset, setSmokeOffset] = useState(0)
-
-  const ForestModel = useCallback(() => {
-    const { scene } = useGLTF('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/forest.gltf-JfwNfQ3LGbUAeEbTPuRg03zc6qNdlO.glb')
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true
-        child.receiveShadow = true
-        if (child.material) {
-          child.material.shadowSide = THREE.FrontSide
-          child.material.side = THREE.DoubleSide
-        }
-      }
-    })
-    return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
-  }, [])
-
-  useFrame((state, delta) => {
-    if (isAnimating) {
-      setAnimationProgress((prev) => Math.min(prev + delta * 2, 1))
-    } else {
-      setAnimationProgress(0)
-    }
-    if (type !== 'grass' && type !== 'forest' && type !== 'border' && type !== 'hayle') {
-      setSmokeOffset((prev) => (prev + delta * 0.05) % 0.5)
-    }
-  })
 
   const currentPosition = useMemo(() => {
     if (isAnimating) {
@@ -230,18 +194,11 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
           <meshStandardMaterial color="#FFD700" />
         </mesh>
       )}
+      {/* Building slot */}
       {(type !== 'grass' && type !== 'forest' && type !== 'border' && type !== 'hayle') && (
         <group position={[0, height, 0]}>
           <group rotation={[0, Math.PI / 6.5, 0]}>
             {children}
-          </group>
-          <group position={[0.1, 0.4, 0.1]}>
-            {[...Array(5)].map((_, index) => (
-              <mesh key={index} position={[0, (index * 0.1 + smokeOffset) % 0.5, 0]}>
-                <sphereGeometry args={[0.03, 8, 8]} />
-                <meshStandardMaterial color="#C0C0C0" transparent opacity={0.8 - ((index * 0.1 + smokeOffset) % 0.5) * 1.2} />
-              </mesh>
-            ))}
           </group>
         </group>
       )}
@@ -281,27 +238,12 @@ const MedievalLand: React.FC = () => {
         }
       }
     }
+    
     return tileData
   }
 
   useEffect(() => {
     setTiles(generateTiles(10, 1))
-  }, [])
-
-
-  const BuildingModel = useCallback(({ type }: { type: string }) => {
-    const { scene } = useGLTF(buildingUrls[type as keyof typeof buildingUrls])
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true
-        child.receiveShadow = true
-        if (child.material) {
-          child.material.shadowSide = THREE.FrontSide
-          child.material.side = THREE.DoubleSide
-        }
-      }
-    })
-    return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
   }, [])
 
   const getRandomBuilding = () => {
@@ -316,6 +258,7 @@ const MedievalLand: React.FC = () => {
         tile.pos[1] === position[1] && 
         tile.pos[2] === position[2]
       )
+
       if (index !== -1) {
         if (newTiles[index].type === 'border') {
           // Extend island
@@ -434,13 +377,6 @@ const MedievalLand: React.FC = () => {
     </group>
   )
 }
-
-// Preload all building models
-Object.entries(buildingUrls).forEach(([type, url]) => {
-  useGLTF.preload(url)
-})
-
-useGLTF.preload('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/forest.gltf-JfwNfQ3LGbUAeEbTPuRg03zc6qNdlO.glb')
 
 export default function Component() {
   return (
