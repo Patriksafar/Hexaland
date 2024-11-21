@@ -1,7 +1,5 @@
 'use client'
 
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera, SoftShadows } from '@react-three/drei'
 import { useState, useEffect, memo } from 'react'
 
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
