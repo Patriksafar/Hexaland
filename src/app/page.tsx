@@ -16,7 +16,7 @@ export default function Component() {
         <directionalLight 
           position={[-10, 15, -10]} 
           intensity={1} 
-          castShadow 
+          castShadow
           shadow-mapSize-width={2048} 
           shadow-mapSize-height={2048}
           shadow-camera-far={50}
