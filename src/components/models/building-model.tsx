@@ -12,6 +12,7 @@ export const buildingUrls = {
   mine: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mine.gltf-IlfYGKmDADall7pG0zRoN2jIGj5QId.glb',
   lumbermill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lumbermill.gltf-CjWbZic6KaLsiUEpC8AlRDkuUtTjxQ.glb',
   castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb',
+  grain: "./grain.glb",
 }
 export type BuildingType = keyof typeof buildingUrls
 

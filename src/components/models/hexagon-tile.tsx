@@ -4,7 +4,6 @@ import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
 import ForestModel from '@/components/models/forest-model'
-import GrainModel from './grain-model'
 
 interface HexagonTileProps {
   position: [number, number, number]

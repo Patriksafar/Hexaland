@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import HexagonTile from '@/components/models/hexagon-tile'
-import GrainModel from './grain-model'
 import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
 import { Html } from '@react-three/drei'
 
@@ -178,9 +177,6 @@ const MedievalLand: React.FC = () => {
           >
             {((Object.keys(buildingUrls) ?? []).includes(tile.type)) && (
               <BuildingModel type={tile.type as BuildingType} />
-            )}
-            {tile.type === 'grain' && (
-              <GrainModel />
             )}
           </HexagonTile>
         ))}
