@@ -36,7 +36,7 @@ const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
         const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
         tileData.push({
           pos: [x, isBorderTile ? -0.1 : 0, z],
-          color: isBorderTile ? '#ededed' : '#67e8b1',
+          color: isBorderTile ? '#ffffff' : '#67e8b1',
           height: 0.1,
           type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)],
           q,
@@ -101,7 +101,7 @@ const MedievalLand: React.FC = () => {
               const z = hexHeight * (Math.sqrt(1.4) * nr + Math.sqrt(1.4) / 2 * nq)
               newTiles.push({
                 pos: [x, -0.1, z],
-                color: '#ededed',
+                color: '#ffffff',
                 height: 0.1,
                 type: 'border',
                 q: nq,

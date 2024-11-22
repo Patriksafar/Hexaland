@@ -7,7 +7,7 @@ import MedievalLand from '@/components/models/medieval-land'
 
 export default function Component() {
   return (
-    <div className="w-full h-screen bg-[#bfc2c1]">
+    <div className="w-full h-screen bg-[#bfc2c1] ">
       <Canvas
         shadows="soft"
         dpr={[1, 2]}
@@ -16,7 +16,7 @@ export default function Component() {
           antialias: false,
           powerPreference: "high-performance"
         }}
-      >
+      > 
         <SoftShadows 
           size={10}
           samples={8}

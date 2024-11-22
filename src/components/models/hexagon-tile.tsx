@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useRef, useState } from 'react'
+import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
 import ForestModel from '@/components/models/forest-model'
@@ -93,18 +93,29 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
 }) => {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
+  const [sound, setSound] = useState<THREE.Audio | null>(null)
   const currentPosition = position
 
-  // sound effect
-  const listener = new THREE.AudioListener()
-  const audioLoader = new THREE.AudioLoader()
-  const clickSound = new THREE.Audio(listener)
-  audioLoader.load('tile-pop.mp3', (buffer) => {
-    console.log('loaded')
+  useEffect(() => {
+    // Create audio listener and sound
+    const listener = new THREE.AudioListener()
+    const sound = new THREE.Audio(listener)
+    const audioLoader = new THREE.AudioLoader()
 
-    clickSound.setBuffer(buffer)
-    clickSound.setVolume(1)
-  })
+    audioLoader.load('./tile-pop.mp3', (buffer) => {
+      sound.setBuffer(buffer)
+      sound.setVolume(0.5)
+      // speed up the sound
+      // start the sound from 0.5 seconds
+      sound.playbackRate = 1.5
+      sound.offset = 0.15
+      setSound(sound)
+    })
+
+    return () => {
+      sound.disconnect()
+    }
+  }, [])
 
   const handlePointerOver = () => {
     setHovered(true)
@@ -117,8 +128,9 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   }
 
   const handleClick = () => {
-    clickSound.play()
-
+    if (sound && !sound.isPlaying) {
+      sound.play()
+    }
     if (onClick) onClick(position)
   }
 
