@@ -6,7 +6,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { buildingUrls } from "../models/building-model"
+import { BuildingType, buildingUrls } from "../models/building-model"
 import { useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
@@ -57,10 +57,17 @@ const BuildingSelectionDialog: React.FC<BuildingSelectionDialogProps> = ({
               camera={{ position: [4, 4, 4], fov: 50 }}
               className="w-full h-full"
             >
-              <ambientLight intensity={0.5} />
-              <pointLight position={[10, 10, 10]} />
+              <ambientLight intensity={1.5} />
+              <directionalLight 
+                position={[-5, 5, -5]}
+                intensity={1.5}
+                castShadow
+              />
+              <hemisphereLight 
+                args={["#ffffff", "#b1e1ff", 1]}
+              />
               <OrbitControls enableZoom={false} autoRotate />
-              <BuildingModel type={selectedBuilding as any} />
+              <BuildingModel type={selectedBuilding as BuildingType} />
             </Canvas>
           </div>
         )}

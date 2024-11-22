@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import HexagonTile from '@/components/models/hexagon-tile'
-import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
 import { Html } from '@react-three/drei'
+import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
 
 interface TileData {
   pos: [number, number, number]
