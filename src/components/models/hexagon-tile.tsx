@@ -93,8 +93,18 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
 }) => {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
-
   const currentPosition = position
+
+  // sound effect
+  const listener = new THREE.AudioListener()
+  const audioLoader = new THREE.AudioLoader()
+  const clickSound = new THREE.Audio(listener)
+  audioLoader.load('tile-pop.mp3', (buffer) => {
+    console.log('loaded')
+
+    clickSound.setBuffer(buffer)
+    clickSound.setVolume(1)
+  })
 
   const handlePointerOver = () => {
     setHovered(true)
@@ -107,6 +117,8 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   }
 
   const handleClick = () => {
+    clickSound.play()
+
     if (onClick) onClick(position)
   }
 
