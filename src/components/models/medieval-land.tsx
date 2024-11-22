@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import HexagonTile from '@/components/models/hexagon-tile'
+import GrainModel from './grain-model'
 
 interface TileData {
   pos: [number, number, number]
@@ -22,7 +23,7 @@ const MAP_SIZE = 10
 
 const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
   const tileData: TileData[] = []
-  const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
+  const tileTypes: ('grass' | 'forest')[] = ['grass', 'forest']
   const hexWidth = 1
   const hexHeight = Math.sqrt(3) / 2
 
@@ -60,7 +61,7 @@ const MedievalLand: React.FC = () => {
     setTiles(generateTiles(MAP_SIZE, 1))
   }, [])
 
-  const buildings = Object.keys(buildingUrls)
+  const buildings = [...Object.keys(buildingUrls), "grain"]
   const getRandomBuilding = () => {
     return buildings[Math.floor(Math.random() * buildings.length)]
   }
@@ -77,7 +78,7 @@ const MedievalLand: React.FC = () => {
       if (index !== -1) {
         if (newTiles[index].type === 'border') {
           // Extend island
-          const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
+          const tileTypes: ('grass' | 'forest')[] = ['grass', 'forest']
           newTiles[index] = {
             ...newTiles[index],
             type: tileTypes[Math.floor(Math.random() * tileTypes.length)],
@@ -175,8 +176,11 @@ const MedievalLand: React.FC = () => {
           buildProgress={tile.buildProgress}
           onClick={handleTileClick}
         >
-          {(buildings.includes(tile.type)) && (
+          {((Object.keys(buildingUrls) ?? []).includes(tile.type)) && (
             <BuildingModel type={tile.type as BuildingType} />
+          )}
+          {tile.type === 'grain' && (
+            <GrainModel />
           )}
         </HexagonTile>
       ))}

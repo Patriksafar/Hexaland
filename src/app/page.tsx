@@ -24,7 +24,8 @@ export default function Component() {
           focus={0.5}
         />
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
-        <OrbitControls enableZoom={true}
+        <OrbitControls 
+          enableZoom={true}
           minPolarAngle={MathUtils.degToRad(20)} // Restrict to 0 degrees (top view)
           maxPolarAngle={MathUtils.degToRad(80)} // Restrict to 80 degrees (slightly above horizon)
         />

@@ -1,6 +1,5 @@
 import { useGLTF } from "@react-three/drei"
 import { memo } from "react"
-import * as THREE from 'three'
 import { Mesh } from "three"
 
 export const buildingUrls = {
@@ -12,7 +11,7 @@ export const buildingUrls = {
   watchtower: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/watchtower.gltf-XlLDeJFda3ghdreoKtEROiLnyu4SVt.glb',
   mine: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mine.gltf-IlfYGKmDADall7pG0zRoN2jIGj5QId.glb',
   lumbermill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lumbermill.gltf-CjWbZic6KaLsiUEpC8AlRDkuUtTjxQ.glb',
-  castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb'
+  castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb',
 }
 export type BuildingType = keyof typeof buildingUrls
 
@@ -22,10 +21,6 @@ const BuildingModel = ({ type }: { type: BuildingType }) => {
     if (child instanceof Mesh) {
       child.castShadow = true
       child.receiveShadow = true
-      if (child.material) {
-        child.material.shadowSide = THREE.FrontSide
-        child.material.side = THREE.DoubleSide
-      }
     }
   })
   return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />

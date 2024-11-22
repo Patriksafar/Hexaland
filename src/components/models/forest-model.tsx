@@ -7,10 +7,6 @@ const ForestModel = () => {
     if (child instanceof THREE.Mesh) {
       child.castShadow = true
       child.receiveShadow = true
-      if (child.material) {
-        child.material.shadowSide = THREE.FrontSide
-        child.material.side = THREE.DoubleSide
-      }
     }
   })
 
