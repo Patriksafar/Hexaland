@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback } from 'react'
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import HexagonTile from '@/components/models/hexagon-tile'
 import GrainModel from './grain-model'
+import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
+import { Html } from '@react-three/drei'
 
 interface TileData {
   pos: [number, number, number]
@@ -55,16 +57,50 @@ const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
 
 const MedievalLand: React.FC = () => {
   const [tiles, setTiles] = useState<TileData[]>([])
-
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedTilePosition, setSelectedTilePosition] = useState<[number, number, number] | null>(null)
 
   useEffect(() => {
     setTiles(generateTiles(MAP_SIZE, 1))
   }, [])
 
-  const buildings = [...Object.keys(buildingUrls), "grain"]
-  const getRandomBuilding = () => {
-    return buildings[Math.floor(Math.random() * buildings.length)]
-  }
+  const handleBuildingSelect = useCallback((buildingType: string) => {
+    if (!selectedTilePosition) return
+
+    setTiles(prevTiles => {
+      const newTiles = [...prevTiles]
+      const index = newTiles.findIndex(tile => 
+        tile.pos[0] === selectedTilePosition[0] && 
+        tile.pos[1] === selectedTilePosition[1] && 
+        tile.pos[2] === selectedTilePosition[2]
+      )
+
+      if (index !== -1) {
+        newTiles[index] = {
+          ...newTiles[index],
+          isBuilding: true,
+          buildProgress: 0,
+          type: buildingType
+        }
+
+        // Start building process
+        const buildInterval = setInterval(() => {
+          setTiles(currentTiles => {
+            const updatedTiles = [...currentTiles]
+            const buildingTile = updatedTiles[index]
+            if (buildingTile.buildProgress! < 1) {
+              buildingTile.buildProgress! += 0.1
+            } else {
+              buildingTile.isBuilding = false
+              clearInterval(buildInterval)
+            }
+            return updatedTiles
+          })
+        }, 100)
+      }
+      return newTiles
+    })
+  }, [selectedTilePosition])
 
   const handleTileClick = useCallback((position: [number, number, number]) => {
     setTiles(prevTiles => {
@@ -118,45 +154,8 @@ const MedievalLand: React.FC = () => {
             }
           })
         } else if (newTiles[index].type === 'grass') {
-          // Start building a random building
-          const randomBuilding = getRandomBuilding()
-          newTiles[index] = {
-            ...newTiles[index],
-            isBuilding: true,
-            buildProgress: 0,
-            type: randomBuilding
-          }
-
-          // Start building process
-          const buildInterval = setInterval(() => {
-            setTiles(currentTiles => {
-              const updatedTiles = [...currentTiles]
-              const buildingTile = updatedTiles[index]
-              if (buildingTile.buildProgress! < 1) {
-                buildingTile.buildProgress! += 0.1
-              } else {
-                buildingTile.isBuilding = false
-                clearInterval(buildInterval)
-              }
-              return updatedTiles
-            })
-          }, 100) // Update every 100ms for a total of 1 second
-
-          // Animate neighboring tiles
-          const { q, r, s } = newTiles[index]
-          const neighbors: [number, number, number][] = [
-            [q+1, r-1, s], [q+1, r, s-1], [q, r+1, s-1],
-            [q-1, r+1, s], [q-1, r, s+1], [q, r-1, s+1]
-          ]
-
-          neighbors.forEach(([nq, nr, ns]) => {
-            const neighborIndex = newTiles.findIndex(tile => tile.q === nq && tile.r === nr && tile.s === ns)
-            if (neighborIndex !== -1 && newTiles[neighborIndex].type !== 'border') {
-              newTiles[neighborIndex] = {
-                ...newTiles[neighborIndex],
-              }
-            }
-          })
+          setSelectedTilePosition(position)
+          setDialogOpen(true)
         }
       }
       return newTiles
@@ -164,27 +163,36 @@ const MedievalLand: React.FC = () => {
   }, [])
 
   return (
-    <group>
-      {tiles.map((tile) => (
-        <HexagonTile
-          key={`${tile.q},${tile.r},${tile.s}`}
-          position={tile.pos}
-          color={tile.color}
-          height={tile.height}
-          type={tile.type}
-          isBuilding={tile.isBuilding}
-          buildProgress={tile.buildProgress}
-          onClick={handleTileClick}
-        >
-          {((Object.keys(buildingUrls) ?? []).includes(tile.type)) && (
-            <BuildingModel type={tile.type as BuildingType} />
-          )}
-          {tile.type === 'grain' && (
-            <GrainModel />
-          )}
-        </HexagonTile>
-      ))}
-    </group>
+    <>
+      <group>
+        {tiles.map((tile) => (
+          <HexagonTile
+            key={`${tile.q},${tile.r},${tile.s}`}
+            position={tile.pos}
+            color={tile.color}
+            height={tile.height}
+            type={tile.type}
+            isBuilding={tile.isBuilding}
+            buildProgress={tile.buildProgress}
+            onClick={handleTileClick}
+          >
+            {((Object.keys(buildingUrls) ?? []).includes(tile.type)) && (
+              <BuildingModel type={tile.type as BuildingType} />
+            )}
+            {tile.type === 'grain' && (
+              <GrainModel />
+            )}
+          </HexagonTile>
+        ))}
+      </group>
+      <Html>
+        <BuildingSelectionDialog
+          isOpen={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onSelect={handleBuildingSelect}
+        />
+      </Html>
+    </>
   )
 }
 
