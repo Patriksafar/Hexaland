@@ -14,12 +14,6 @@ export const buildingUrls = {
   lumbermill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lumbermill.gltf-CjWbZic6KaLsiUEpC8AlRDkuUtTjxQ.glb',
   castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb'
 }
-
-// Preload all building models
-Object.entries(buildingUrls).forEach(([, url]) => {
-  useGLTF.preload(url)
-})
-
 export type BuildingType = keyof typeof buildingUrls
 
 const BuildingModel = ({ type }: { type: BuildingType }) => {
@@ -36,5 +30,11 @@ const BuildingModel = ({ type }: { type: BuildingType }) => {
   })
   return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
  }
+
+ // Preload all building models
+Object.entries(buildingUrls).forEach(([, url]) => {
+  useGLTF.preload(url)
+})
+
  
 export default memo(BuildingModel)

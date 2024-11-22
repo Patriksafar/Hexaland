@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, memo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import HexagonTile from '@/components/models/hexagon-tile'
@@ -18,44 +18,46 @@ interface TileData {
   buildProgress?: number
 }
 
+const MAP_SIZE = 10
+
+const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
+  const tileData: TileData[] = []
+  const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
+  const hexWidth = 1
+  const hexHeight = Math.sqrt(3) / 2
+
+  for (let q = -Math.floor((mapSize + borderSize * 2) / 2); q < Math.ceil((mapSize + borderSize * 2) / 2); q++) {
+    for (let r = -Math.floor((mapSize + borderSize * 2) / 2); r < Math.ceil((mapSize + borderSize * 2) / 2); r++) {
+      const s = -q - r
+      const maxCoord = Math.max(Math.abs(q), Math.abs(r), Math.abs(s))
+      if (maxCoord < Math.floor((mapSize + borderSize * 2) / 2)) {
+        const x = hexWidth * (0.9 * q)
+        const z = hexHeight * (Math.sqrt(1.4) * r + Math.sqrt(1.4) / 2 * q)
+        const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
+        tileData.push({
+          pos: [x, isBorderTile ? -0.1 : 0, z],
+          color: isBorderTile ? '#ededed' : '#67e8b1',
+          height: 0.1,
+          type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)],
+          q,
+          r,
+          s,
+          isBuilding: false,
+          buildProgress: 0
+        })
+      }
+    }
+  }
+  
+  return tileData
+}
+
 const MedievalLand: React.FC = () => {
   const [tiles, setTiles] = useState<TileData[]>([])
 
-  const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
-    const tileData: TileData[] = []
-    const tileTypes: ('grass' | 'forest' | 'hayle')[] = ['grass', 'forest', 'hayle']
-    const hexWidth = 1
-    const hexHeight = Math.sqrt(3) / 2
-
-    for (let q = -Math.floor((mapSize + borderSize * 2) / 2); q < Math.ceil((mapSize + borderSize * 2) / 2); q++) {
-      for (let r = -Math.floor((mapSize + borderSize * 2) / 2); r < Math.ceil((mapSize + borderSize * 2) / 2); r++) {
-        const s = -q - r
-        const maxCoord = Math.max(Math.abs(q), Math.abs(r), Math.abs(s))
-        if (maxCoord < Math.floor((mapSize + borderSize * 2) / 2)) {
-          const x = hexWidth * (0.9 * q)
-          const z = hexHeight * (Math.sqrt(1.4) * r + Math.sqrt(1.4) / 2 * q)
-          const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
-          tileData.push({
-            pos: [x, isBorderTile ? -0.1 : 0, z],
-            color: isBorderTile ? '#ededed' : '#67e8b1',
-            height: 0.1,
-            type: isBorderTile ? 'border' : tileTypes[Math.floor(Math.random() * tileTypes.length)],
-            q,
-            r,
-            s,
-            isAnimating: false,
-            isBuilding: false,
-            buildProgress: 0
-          })
-        }
-      }
-    }
-    
-    return tileData
-  }
 
   useEffect(() => {
-    setTiles(generateTiles(10, 1))
+    setTiles(generateTiles(MAP_SIZE, 1))
   }, [])
 
   const buildings = Object.keys(buildingUrls)
@@ -63,7 +65,7 @@ const MedievalLand: React.FC = () => {
     return buildings[Math.floor(Math.random() * buildings.length)]
   }
 
-  const handleTileClick = (position: [number, number, number]) => {
+  const handleTileClick = useCallback((position: [number, number, number]) => {
     setTiles(prevTiles => {
       const newTiles = [...prevTiles]
       const index = newTiles.findIndex(tile => 
@@ -81,7 +83,6 @@ const MedievalLand: React.FC = () => {
             type: tileTypes[Math.floor(Math.random() * tileTypes.length)],
             color: "#6EE7B7",
             height: 0.2,
-            isAnimating: true
           }
 
           // Add new border tiles and animate neighboring tiles
@@ -106,14 +107,12 @@ const MedievalLand: React.FC = () => {
                 q: nq,
                 r: nr,
                 s: ns,
-                isAnimating: false,
                 isBuilding: false,
                 buildProgress: 0
               })
             } else if (newTiles[neighborIndex].type !== 'border') {
               newTiles[neighborIndex] = {
                 ...newTiles[neighborIndex],
-                isAnimating: true
               }
             }
           })
@@ -154,7 +153,6 @@ const MedievalLand: React.FC = () => {
             if (neighborIndex !== -1 && newTiles[neighborIndex].type !== 'border') {
               newTiles[neighborIndex] = {
                 ...newTiles[neighborIndex],
-                isAnimating: true
               }
             }
           })
@@ -162,11 +160,7 @@ const MedievalLand: React.FC = () => {
       }
       return newTiles
     })
-
-    setTimeout(() => {
-      setTiles(prevTiles => prevTiles.map(tile => ({ ...tile, isAnimating: false })))
-    }, 500)
-  }
+  }, [])
 
   return (
     <group>
@@ -177,7 +171,6 @@ const MedievalLand: React.FC = () => {
           color={tile.color}
           height={tile.height}
           type={tile.type}
-          isAnimating={tile.isAnimating}
           isBuilding={tile.isBuilding}
           buildProgress={tile.buildProgress}
           onClick={handleTileClick}
@@ -191,4 +184,4 @@ const MedievalLand: React.FC = () => {
   )
 }
 
-export default memo(MedievalLand)
+export default MedievalLand
