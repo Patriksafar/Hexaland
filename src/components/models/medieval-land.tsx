@@ -6,19 +6,8 @@ import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/bu
 import HexagonTile from '@/components/models/hexagon-tile'
 import { Html } from '@react-three/drei'
 import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
-
-interface TileData {
-  pos: [number, number, number]
-  color: string
-  height: number
-  type: string
-  q: number
-  r: number
-  s: number
-  isAnimating?: boolean
-  isBuilding?: boolean
-  buildProgress?: number
-}
+import { TileData, GameState } from '@/types/game'
+import { saveGameState, loadGameState } from '@/utils/storage'
 
 const MAP_SIZE = 10
 
@@ -60,8 +49,23 @@ const MedievalLand: React.FC = () => {
   const [selectedTilePosition, setSelectedTilePosition] = useState<[number, number, number] | null>(null)
 
   useEffect(() => {
-    setTiles(generateTiles(MAP_SIZE, 1))
+    const savedState = loadGameState()
+    if (savedState) {
+      setTiles(savedState.tiles)
+    } else {
+      setTiles(generateTiles(MAP_SIZE, 1))
+    }
   }, [])
+
+  useEffect(() => {
+    if (tiles.length > 0) {
+      const gameState: GameState = {
+        tiles,
+        lastSaved: new Date().toISOString()
+      }
+      saveGameState(gameState)
+    }
+  }, [tiles])
 
   const handleBuildingSelect = useCallback((buildingType: string) => {
     if (!selectedTilePosition) return

@@ -44,8 +44,10 @@ export default function Component() {
           shadow-radius={8}
           shadow-blurSamples={16}
         />
-        <hemisphereLight args={["#b1e1ff", "#000000", 0.8]} />
-        <pointLight position={[10, 10, 10]} intensity={0.5} />
+        <hemisphereLight 
+          args={["#ffffff", "#b1e1ff", 1]}
+        />
+        <pointLight position={[10, 10, 10]} intensity={1} />
         <MedievalLand />
       </Canvas>
     </div>
