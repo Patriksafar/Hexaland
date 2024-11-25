@@ -2,13 +2,13 @@
 
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, SoftShadows } from '@react-three/drei'
+import { MathUtils, DoubleSide } from 'three'
 
 import MedievalLand from '@/components/models/medieval-land'
-import { MathUtils } from 'three'
 
 export default function Component() {
   return (
-    <div className="w-full h-screen bg-[#bfc2c1] ">
+    <div className="w-full h-screen bg-[#3965ce] ">
       <Canvas
         shadows="soft"
         dpr={[1, 2]}
@@ -18,6 +18,15 @@ export default function Component() {
           powerPreference: "high-performance"
         }}
       > 
+          <ambientLight intensity={0.5} />
+          <directionalLight
+            castShadow
+            position={[2.5, 8, 5]}
+            intensity={1.5}
+            shadow-mapSize={1024}
+          />
+          <pointLight position={[-10, 4, -20]} color="white" intensity={1} />
+          <pointLight position={[0, -10, 0]} intensity={1} />
         <SoftShadows 
           size={10}
           samples={8}
@@ -29,25 +38,20 @@ export default function Component() {
           minPolarAngle={MathUtils.degToRad(20)} // Restrict to 0 degrees (top view)
           maxPolarAngle={MathUtils.degToRad(80)} // Restrict to 80 degrees (slightly above horizon)
         />
-        <ambientLight intensity={0.4} />
-        <directionalLight 
-          position={[-10, 15, -10]} 
-          intensity={1} 
-          castShadow
-          shadow-mapSize-width={2048} 
-          shadow-mapSize-height={2048}
-          shadow-camera-far={50}
-          shadow-camera-left={-20}
-          shadow-camera-right={20}
-          shadow-camera-top={20}
-          shadow-camera-bottom={-20}
-          shadow-radius={8}
-          shadow-blurSamples={16}
-        />
         <hemisphereLight 
-          args={["#ffffff", "#b1e1ff", 1]}
+          args={["#ffffff", "#b1e1ff", 0.2]}
         />
-        <pointLight position={[10, 10, 10]} intensity={1} />
+        <mesh 
+          rotation={[-Math.PI / 2, 0, 0]} 
+          position={[0, -0.1, 0]} 
+          receiveShadow
+        >
+          <planeGeometry args={[1000, 1000]} />
+          <meshStandardMaterial 
+            color="#4477ff" 
+            side={DoubleSide} 
+          />
+        </mesh>
         <MedievalLand />
       </Canvas>
     </div>
