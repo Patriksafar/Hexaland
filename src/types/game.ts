@@ -2,7 +2,7 @@ interface TileData {
   pos: [number, number, number]
   color: string
   height: number
-  type: string
+  type: 'grass' | 'forest' | 'border' | string
   q: number
   r: number
   s: number

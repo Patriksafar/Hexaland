@@ -5,6 +5,7 @@ import { OrbitControls, PerspectiveCamera, SoftShadows } from '@react-three/drei
 import { MathUtils, DoubleSide } from 'three'
 
 import MedievalLand from '@/components/models/medieval-land'
+// import CameraController from '@/components/camera-controller'
 
 export default function Component() {
   return (
@@ -33,6 +34,7 @@ export default function Component() {
           focus={0.5}
         />
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
+        {/* <CameraController /> */}
         <OrbitControls 
           enableZoom={true}
           minPolarAngle={MathUtils.degToRad(20)} // Restrict to 0 degrees (top view)
