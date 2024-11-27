@@ -32,10 +32,19 @@ const generateVillageTiles = (size: number): VillageTile[] => {
         // Center tile is the house
         const isCenter = q === 0 && r === 0
         
+        // Calculate height based on position
+        let tileHeight = 0.5  // Default height
+        
+        if (r < 0) {  // Tiles behind the center
+          // Increase height by 0.5 every 2 rows going backwards
+          tileHeight = 0.5 + Math.abs(Math.floor(r / 2)) * 0.25
+        }
+        // Front tiles (r > 0) will keep the default height of 0.5
+        
         tiles.push({
           pos: [x, 0, z],
           color: '#67e8b1',
-          height: 0.1,
+          height: isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
           type: isCenter ? 'house' : 'empty',
           q,
           r,
