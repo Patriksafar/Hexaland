@@ -51,7 +51,7 @@ const generateVillageTiles = (size: number): VillageTile[] => {
         
         tiles.push({
           pos: [x, 0, z],
-          color: '#67e8b1',
+          color: '#73c251',
           height: isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
           type: isCenter ? 'house' : 'empty',
           q,
