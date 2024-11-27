@@ -29,17 +29,25 @@ const generateVillageTiles = (size: number): VillageTile[] => {
         const x = HEX_WIDTH * (0.9 * q)
         const z = HEX_HEIGHT * (Math.sqrt(1.4) * r + Math.sqrt(1.4) / 2 * q)
         
-        // Center tile is the house
         const isCenter = q === 0 && r === 0
-        
-        // Calculate height based on position
         let tileHeight = 0.5  // Default height
         
-        if (r < 0) {  // Tiles behind the center
-          // Increase height by 0.5 every 2 rows going backwards
-          tileHeight = 0.5 + Math.abs(Math.floor(r / 2)) * 0.25
+        const isBorder = Math.abs(q) === Math.floor(size/2) || 
+                        Math.abs(r) === Math.floor(size/2) || 
+                        Math.abs(s) === Math.floor(size/2)
+
+        // For tiles behind the center (r < 0)
+        if (r < 0) {
+          // Increase height by 0.25 every 2 rows behind center
+          tileHeight = 0.5 + Math.floor(Math.abs(r) / 2) * 0.25
+          
+          // Add random height variation to border tiles behind center
+          if (isBorder) {
+            // Either keep same height or add 0.25
+            tileHeight += Math.random() > 0.5 ? 0 : 0.25
+          }
         }
-        // Front tiles (r > 0) will keep the default height of 0.5
+        // Front tiles (r >= 0) stay at 0.5
         
         tiles.push({
           pos: [x, 0, z],
