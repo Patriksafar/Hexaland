@@ -145,7 +145,9 @@ const VillageSimulator = () => {
 
   return (
     <>
-      <group>
+      <group 
+        rotation={[0, Math.PI / 6.5, 0]}
+        >
         {tiles.map((tile) => (
           <HexagonTile
             key={`${tile.q},${tile.r},${tile.s}`}

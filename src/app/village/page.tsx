@@ -28,8 +28,16 @@ export default function VillagePage() {
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
         <OrbitControls 
           enableZoom={true}
-          minPolarAngle={MathUtils.degToRad(20)}
-          maxPolarAngle={MathUtils.degToRad(80)}
+          minPolarAngle={MathUtils.degToRad(45)}
+          maxPolarAngle={MathUtils.degToRad(45)}
+          enableRotate={true}
+          maxDistance={30}
+          minDistance={10}
+          enablePan={false}
+          panSpeed={0}
+          rotateSpeed={0.3}
+          minAzimuthAngle={MathUtils.degToRad(-30)}
+          maxAzimuthAngle={MathUtils.degToRad(30)}
         />
         <VillageSimulator />
       </Canvas>
