@@ -108,9 +108,18 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
       <mesh 
         ref={meshRef}
         rotation={[-Math.PI / 2, 0, 0]}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-        onClick={handleClick}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          handlePointerOver();
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation();
+          handlePointerOut();
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClick();
+        }}
         castShadow
         receiveShadow
       >
@@ -126,7 +135,13 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
             }
           ]} 
         />
-        <meshStandardMaterial color={hovered && (type === 'grass' || type === 'border') ? '#6e88e7' : color} />
+        <meshStandardMaterial 
+          color={hovered && (type === 'grass' || type === 'border') ? '#6e88e7' : color}
+          transparent={false}
+          depthWrite={true}
+          depthTest={true}
+          side={THREE.FrontSide}
+        />
       </mesh>
       {type === 'forest' && (
         <group position={[0, height, 0]}>
