@@ -32,6 +32,8 @@ export default function VillagePage() {
           maxPolarAngle={MathUtils.degToRad(45)}
           enableRotate={true}
           maxDistance={30}
+          // set default distance
+          
           minDistance={10}
           enablePan={false}
           panSpeed={0}
