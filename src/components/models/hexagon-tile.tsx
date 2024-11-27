@@ -136,7 +136,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
           ]} 
         />
         <meshStandardMaterial 
-          color={hovered && (type === 'grass' || type === 'border') ? '#6e88e7' : color}
+          color={hovered ? '#6e88e7' : color}
           transparent={false}
           depthWrite={true}
           depthTest={true}
