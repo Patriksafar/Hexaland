@@ -2,9 +2,10 @@
 
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { MathUtils } from 'three'
+import { DoubleSide, MathUtils } from 'three'
 import VillageSimulator from '@/components/village/village-simulator'
 import ResourceCounter from '@/components/resource-counter'
+import { GroundedSkybox } from 'three/examples/jsm/Addons.js'
 
 export default function VillagePage() {
   return (
@@ -39,6 +40,17 @@ export default function VillagePage() {
           minAzimuthAngle={MathUtils.degToRad(-30)}
           maxAzimuthAngle={MathUtils.degToRad(30)}
         />
+        <mesh 
+          rotation={[-Math.PI / 2, 0, 0]} 
+          position={[0, -0.1, 0]} 
+          receiveShadow
+        >
+          <planeGeometry args={[1000, 1000]} />
+          <meshStandardMaterial 
+            color="#4477ff" 
+            side={DoubleSide} 
+          />
+        </mesh>
         <VillageSimulator />
       </Canvas>
     </div>
