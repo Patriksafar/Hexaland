@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Html } from '@react-three/drei'
 import HexagonTile from '@/components/models/hexagon-tile'
-import BuildingModel from '@/components/models/building-model'
+import BuildingModel, { BuildingType, buildingUrls } from '@/components/models/building-model'
 import GrainModel from '@/components/models/grain-model/grain-model'
 
 import { TileData } from '@/types/game'
@@ -118,11 +118,13 @@ const VillageSimulator = () => {
           setSelectedTilePosition(position)
           setDialogOpen(true)
         } else if (tile.type === 'grain' && 
-                  tile.resources! > 0 && 
+            tile.resources! > 0 && 
                   (!tile.lastHarvested || now - tile.lastHarvested > HARVEST_COOLDOWN)) {
+
           updateResources({
             grain: resources.grain + tile.resources!
           })
+
           newTiles[index] = {
             ...tile,
             resources: 0,
@@ -159,12 +161,12 @@ const VillageSimulator = () => {
             type={tile.type}
             onClick={handleTileClick}
           >
-            {tile.type === 'house' && (
-              <BuildingModel type="house" />
-            )}
-            {tile.type === 'grain' && (
-              <GrainModel type={tile.resources! > 0 ? "full-grown" : "harvested"} />
-            )}
+            {tile.type === 'grain' ? (
+              <GrainModel type={tile.resources! > 0 ? "full-grown" : "dirt"} />
+             ): (
+              (Object.keys(buildingUrls) ?? []).includes(tile.type)) && (
+                <BuildingModel type={tile.type as BuildingType} />
+             )}
           </HexagonTile>
         ))}
       </group>
