@@ -11,6 +11,9 @@ export default function ResourceCounter() {
         <h2 className="font-bold mb-2">Resources</h2>
         <p>Grain: {resources.grain}</p>
         <p>Wood: {resources.wood}</p>
+        <p>Gold: {resources.gold}</p>
+        <p>Stone: {resources.stone}</p>
+        <p>Iron: {resources.iron}</p>
       </div>
     </div>
   )

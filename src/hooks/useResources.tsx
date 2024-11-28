@@ -5,6 +5,9 @@ import { createContext, useContext, useState, ReactNode } from 'react'
 interface Resources {
   grain: number
   wood: number
+  gold: number
+  stone: number
+  iron: number
 }
 
 interface ResourceContextType {
@@ -15,7 +18,7 @@ interface ResourceContextType {
 const ResourceContext = createContext<ResourceContextType | null>(null)
 
 export function ResourceProvider({ children }: { children: ReactNode }) {
-  const [resources, setResources] = useState<Resources>({ grain: 5, wood: 1 })
+  const [resources, setResources] = useState<Resources>({ grain: 5, wood: 1, gold: 0, stone: 0, iron: 0 })
 
   const updateResources = (updates: Partial<Resources>) => {
     setResources(prev => ({
