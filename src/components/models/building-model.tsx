@@ -1,5 +1,5 @@
-import { useGLTF } from "@react-three/drei"
-import { memo } from "react"
+import { useAnimations, useGLTF } from "@react-three/drei"
+import { memo, useEffect, useRef } from "react"
 import { Mesh } from "three"
 
 export const buildingUrls = {
@@ -17,7 +17,17 @@ export const buildingUrls = {
 export type BuildingType = keyof typeof buildingUrls
 
 const BuildingModel = ({ type }: { type: BuildingType }) => {
-  const { scene } = useGLTF(buildingUrls[type])
+  const group = useRef<any>();
+  const { scene, animations } = useGLTF(buildingUrls[type])
+  const { actions, mixer, ref } = useAnimations(animations, group);
+
+  console.log(type);
+  
+  console.log(animations);
+  useEffect(() => {
+    actions.Experiment?.play();
+  }, [actions]);
+  
   scene.traverse((child) => {
     if (child instanceof Mesh) {
       child.castShadow = true
@@ -25,7 +35,7 @@ const BuildingModel = ({ type }: { type: BuildingType }) => {
     }
   })
 
-  return <primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} />
+  return <group ref={ref as any}><primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} /></group>
  }
 
  // Preload all building models

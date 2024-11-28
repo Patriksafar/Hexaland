@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { BuildingType, buildingUrls } from "../models/building-model"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import BuildingModel from "../models/building-model"
@@ -60,6 +60,11 @@ const BuildingSelectionDialog: React.FC<BuildingSelectionDialogProps> = ({
     }
   }
 
+  useEffect(() => {
+    setSelectedBuilding(null)
+  }
+  , [isOpen])
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -68,39 +73,43 @@ const BuildingSelectionDialog: React.FC<BuildingSelectionDialogProps> = ({
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-4">
           {buildings.map((building) => (
-            <Button
+            <button 
+              disabled={resources.grain < buildingCosts[building].grain || resources.wood < buildingCosts[building].wood} 
               key={building}
+              className={`rounded-md overflow-hidden ${selectedBuilding === building ? "border-2 border-blue-500 bg-blue-200" : ""}`}
               onClick={() => setSelectedBuilding(building)}
-              variant={selectedBuilding === building ? "default" : "outline"}
-              className="capitalize"
             >
-              {building}
-            </Button>
+              <div className={`h-20 w-full ${resources.grain < buildingCosts[building].grain || resources.wood < buildingCosts[building].wood ? "bg-stone-800 grayscale" : ""}`}>
+              <Canvas
+                    camera={{ position: [1, 2, 1], fov: 40 }}
+                    className="w-full h-full"
+                  >
+                    <ambientLight intensity={1.5} />
+                    <directionalLight 
+                      position={[-5, 5, -5]}
+                      intensity={1.5}
+                      castShadow
+                    />
+                    <hemisphereLight 
+                      args={["#ffffff", "#b1e1ff", 1]}
+                    />
+                    <OrbitControls enableZoom={false} autoRotate minZoom={100} />
+                    <BuildingModel type={building} />
+                  </Canvas>
+                </div>
+            </button>
           ))}
         </div>
         {selectedBuilding && (
+          <div>
+          <div>
+            <h3>Building: {selectedBuilding}</h3>
+          </div>
           <div className="py-4">
             <h3>Resource Cost:</h3>
             <p>Grain: {buildingCosts[selectedBuilding as BuildingType].grain}</p>
             <p>Wood: {buildingCosts[selectedBuilding as BuildingType].wood}</p>
-            <div className="h-48 w-full bg-stone-100 rounded-md">
-              <Canvas
-                camera={{ position: [4, 4, 4], fov: 50 }}
-                className="w-full h-full"
-              >
-                <ambientLight intensity={1.5} />
-                <directionalLight 
-                  position={[-5, 5, -5]}
-                  intensity={1.5}
-                  castShadow
-                />
-                <hemisphereLight 
-                  args={["#ffffff", "#b1e1ff", 1]}
-                />
-                <OrbitControls enableZoom={false} autoRotate />
-                <BuildingModel type={selectedBuilding as BuildingType} />
-              </Canvas>
-            </div>
+          </div>
           </div>
         )}
         <DialogFooter>
