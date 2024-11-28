@@ -144,18 +144,14 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
         />
       </mesh>
       {type === 'forest' && (
-        <group position={[0, height, 0]}>
-          <group rotation={[0, Math.PI / 6.5, 0]}>
+        <group position={[0, height, 0]} rotation={[0, Math.PI / 6.5, 0]}>
             <ForestModel />
-          </group>
         </group>
       )}
       {/* Building slot */}
       {(type !== 'grass' && type !== 'forest' && type !== 'border') && (
-        <group position={[0, height, 0]}>
-          <group rotation={[0, Math.PI / 6.5, 0]}>
-            {children}
-          </group>
+        <group position={[0, height, 0]} rotation={[0, Math.PI / 6.1, 0]}>
+          {children}
         </group>
       )}
     </group>

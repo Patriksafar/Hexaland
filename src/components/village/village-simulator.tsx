@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { Html } from '@react-three/drei'
 import HexagonTile from '@/components/models/hexagon-tile'
 import BuildingModel from '@/components/models/building-model'
+import GrainModel from '@/components/models/grain-model/grain-model'
+
 import { TileData } from '@/types/game'
 import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
 import { useResources } from '@/hooks/useResources'
@@ -152,7 +154,7 @@ const VillageSimulator = () => {
           <HexagonTile
             key={`${tile.q},${tile.r},${tile.s}`}
             position={tile.pos}
-            color={tile.type === 'grain' && tile.resources === 0 ? '#8B4513' : tile.color}
+            color={tile.color}
             height={tile.height}
             type={tile.type}
             onClick={handleTileClick}
@@ -160,8 +162,8 @@ const VillageSimulator = () => {
             {tile.type === 'house' && (
               <BuildingModel type="house" />
             )}
-            {tile.type === 'grain' && tile.resources! > 0 && (
-              <BuildingModel type="grain" />
+            {tile.type === 'grain' && (
+              <GrainModel type={tile.resources! > 0 ? "full-grown" : "harvested"} />
             )}
           </HexagonTile>
         ))}
