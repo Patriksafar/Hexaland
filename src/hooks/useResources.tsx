@@ -15,7 +15,7 @@ interface ResourceContextType {
 const ResourceContext = createContext<ResourceContextType | null>(null)
 
 export function ResourceProvider({ children }: { children: ReactNode }) {
-  const [resources, setResources] = useState<Resources>({ grain: 0, wood: 0 })
+  const [resources, setResources] = useState<Resources>({ grain: 5, wood: 1 })
 
   const updateResources = (updates: Partial<Resources>) => {
     setResources(prev => ({

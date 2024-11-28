@@ -209,6 +209,8 @@ const VillageSimulator = () => {
           isOpen={dialogOpen}
           onClose={() => setDialogOpen(false)}
           onSelect={handleBuildingSelect}
+          resources={resources}
+          updateResources={updateResources}
         />
       </Html>
     </>
