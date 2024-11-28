@@ -9,6 +9,7 @@ import GrainModel from '@/components/models/grain-model/grain-model'
 import { TileData } from '@/types/game'
 import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
 import { useResources } from '@/hooks/useResources'
+import ForestModel from '../models/forest/forest-model'
 
 interface VillageTile extends TileData {
   lastHarvested?: number
@@ -23,6 +24,7 @@ const RESOURCE_YIELD = 10
 
 const generateVillageTiles = (size: number): VillageTile[] => {
   const tiles: VillageTile[] = []
+  let forestCount = 0
   
   for (let q = -Math.floor(size/2); q <= Math.floor(size/2); q++) {
     for (let r = -Math.floor(size/2); r <= Math.floor(size/2); r++) {
@@ -49,17 +51,21 @@ const generateVillageTiles = (size: number): VillageTile[] => {
             tileHeight += Math.random() > 0.5 ? 0 : 0.25
           }
         }
-        // Front tiles (r >= 0) stay at 0.5
+        // Randomly place forest tiles
+        const isForest = forestCount < 8 && Math.random() < 0.2; // 20% chance to place a forest tile
+        if (isForest) {
+          forestCount++;
+        }
         
         tiles.push({
           pos: [x, 0, z],
           color: '#73c251',
           height: isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
-          type: isCenter ? 'house' : 'empty',
+          type: isCenter ? 'house' : (isForest ? 'forest' : 'empty'),
           q,
           r,
           s,
-          resources: 0,
+          resources: isForest ? 5 : 0, // Forest tiles have resources
           lastHarvested: 0
         })
       }
@@ -118,9 +124,9 @@ const VillageSimulator = () => {
           setSelectedTilePosition(position)
           setDialogOpen(true)
         } else if (tile.type === 'grain' && 
-            tile.resources! > 0 && 
-                  (!tile.lastHarvested || now - tile.lastHarvested > HARVEST_COOLDOWN)) {
-
+                   tile.resources! > 0 && 
+                   (!tile.lastHarvested || now - tile.lastHarvested > HARVEST_COOLDOWN)) {
+          // Harvest grain logic
           updateResources({
             grain: resources.grain + tile.resources!
           })
@@ -130,7 +136,7 @@ const VillageSimulator = () => {
             resources: 0,
             lastHarvested: now
           }
-          
+
           setTimeout(() => {
             setTiles(current => {
               const updated = [...current]
@@ -141,11 +147,35 @@ const VillageSimulator = () => {
               return updated
             })
           }, HARVEST_COOLDOWN)
+        } else if (tile.type === 'forest' && 
+                   tile.resources! > 0 && 
+                   (!tile.lastHarvested || now - tile.lastHarvested > HARVEST_COOLDOWN)) {
+          // Harvest forest logic
+          updateResources({
+            wood: resources.wood + tile.resources!
+          })
+
+          newTiles[index] = {
+            ...tile,
+            resources: 0,
+            lastHarvested: now
+          }
+
+          setTimeout(() => {
+            setTiles(current => {
+              const updated = [...current]
+              updated[index] = {
+                ...updated[index],
+                resources: 5 // Reset resources for the forest tile
+              }
+              return updated
+            })
+          }, HARVEST_COOLDOWN)
         }
       }
       return newTiles
     })
-  }, [resources.grain, updateResources])
+  }, [resources.grain, resources.wood, updateResources])
 
   return (
     <>
@@ -160,7 +190,10 @@ const VillageSimulator = () => {
             height={tile.height}
             type={tile.type}
             onClick={handleTileClick}
-          >
+          > 
+            {tile.type === "forest" && (
+              <ForestModel type={tile.resources! > 0 ? "full-grown" : "cut"} /> 
+            )}
             {tile.type === 'grain' ? (
               <GrainModel type={tile.resources! > 0 ? "full-grown" : "dirt"} />
              ): (
