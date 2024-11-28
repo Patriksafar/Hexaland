@@ -20,6 +20,7 @@ const VILLAGE_SIZE = 10
 const HEX_WIDTH = 1
 const HEX_HEIGHT = Math.sqrt(3) / 2
 const HARVEST_COOLDOWN = 10000 // 10 seconds
+const FOREST_CUT = 60000
 const RESOURCE_YIELD = 10
 
 const generateVillageTiles = (size: number): VillageTile[] => {
@@ -149,7 +150,7 @@ const VillageSimulator = () => {
           }, HARVEST_COOLDOWN)
         } else if (tile.type === 'forest' && 
                    tile.resources! > 0 && 
-                   (!tile.lastHarvested || now - tile.lastHarvested > HARVEST_COOLDOWN)) {
+                   (!tile.lastHarvested || now - tile.lastHarvested > FOREST_CUT)) {
           // Harvest forest logic
           updateResources({
             wood: resources.wood + tile.resources!
@@ -170,7 +171,7 @@ const VillageSimulator = () => {
               }
               return updated
             })
-          }, HARVEST_COOLDOWN)
+          }, FOREST_CUT)
         }
       }
       return newTiles
