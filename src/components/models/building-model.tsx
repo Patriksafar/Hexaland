@@ -1,5 +1,5 @@
-import { useAnimations, useGLTF } from "@react-three/drei"
-import { memo, useEffect, useRef } from "react"
+import { useGLTF } from "@react-three/drei"
+import { memo } from "react"
 import { Mesh } from "three"
 
 export const buildingUrls = {
@@ -13,6 +13,8 @@ export const buildingUrls = {
   lumbermill: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lumbermill.gltf-CjWbZic6KaLsiUEpC8AlRDkuUtTjxQ.glb',
   castle: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/castle.gltf-p4jD0gtKGAWaBl019phWRI4mKeBH2W.glb',
   grain: "./models/grain.glb",
+  "tavern": "./models/tavern.glb",
+  "blacksmith": "./models/blacksmith.glb",
 }
 export type BuildingType = keyof typeof buildingUrls
 

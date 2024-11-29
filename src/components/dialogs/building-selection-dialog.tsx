@@ -11,7 +11,6 @@ import { useEffect, useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import BuildingModel from "../models/building-model"
-import { useResources } from "@/hooks/useResources"
 
 const buildingCosts: Record<BuildingType, { grain: number; wood: number }> = {
   house: { grain: 10, wood: 5 },
@@ -24,6 +23,8 @@ const buildingCosts: Record<BuildingType, { grain: number; wood: number }> = {
   lumbermill: { grain: 40, wood: 35 },
   castle: { grain: 50, wood: 50 },
   grain: { grain: 5, wood: 1 },
+  tavern: { grain: 10, wood: 5 },
+  blacksmith: { grain: 15, wood: 10 },
 }
 
 interface BuildingSelectionDialogProps {
