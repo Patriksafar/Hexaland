@@ -1,6 +1,7 @@
 import { useGLTF } from "@react-three/drei"
 import { memo } from "react"
 import { Mesh } from "three"
+import { UnitModel } from "../unit"
 
 type GrainModelProps = {
   type: "full-grown" | "dirt"
@@ -29,6 +30,10 @@ const GrainModel = ({ type }:GrainModelProps) => {
     }
   })
 
+  const randomPosition = () => {  
+    return Math.random() * 0.3
+  }
+
   return  (
     <group>
       <primitive
@@ -36,12 +41,17 @@ const GrainModel = ({ type }:GrainModelProps) => {
         scale={[0.55, 0.8, 0.55]}
         position={[0, 0, 0]}
       />
+      {type === "dirt" && (
+        <UnitModel 
+         position={[randomPosition(), 0.04, randomPosition()]}
+       />
+      )}
       {type !== "dirt" && (
         <primitive 
           object={scene.clone()} 
           scale={[0.55, 0.55, 0.55]} 
           position={[0, 0.05, 0]} 
-        />
+        />      
       )}
     </group>
     )
