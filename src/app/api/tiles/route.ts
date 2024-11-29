@@ -1,5 +1,5 @@
 import { VillageTile } from '@/types/game';
-import { NextApiRequest, NextApiResponse } from 'next'
+import { tiles } from '../tiles-data';
 
 const HEX_WIDTH = 1
 const HEX_HEIGHT = Math.sqrt(3) / 2
@@ -60,12 +60,9 @@ const generateVillageTiles = (size: number): VillageTile[] => {
   return tiles
 }
 
-export let tiles: VillageTile[] = []
-
 export async function GET(request: Request) {
-
     if(tiles.length === 0) {
-      tiles = generateVillageTiles(VILLAGE_SIZE) // Generate tiles with a size of 10
+      tiles.push(...generateVillageTiles(VILLAGE_SIZE)) // Generate tiles with a size of 10
     }
     
     return new Response(JSON.stringify(tiles), {

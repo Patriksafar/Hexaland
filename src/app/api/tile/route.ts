@@ -1,4 +1,4 @@
-import {tiles} from "../tiles/route"
+import { tiles } from "../tiles-data"
 
 export async function POST(request: Request) {
   const data = await request.json()
