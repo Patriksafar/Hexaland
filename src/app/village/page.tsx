@@ -5,7 +5,6 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { DoubleSide, MathUtils } from 'three'
 import VillageSimulator from '@/components/village/village-simulator'
 import ResourceCounter from '@/components/resource-counter'
-import { GroundedSkybox } from 'three/examples/jsm/Addons.js'
 
 export default function VillagePage() {
   return (

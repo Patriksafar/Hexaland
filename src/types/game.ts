@@ -13,6 +13,11 @@ interface TileData {
   buildingRotation?: number
 }
 
+export interface VillageTile extends TileData {
+  lastHarvested?: number
+  resources?: number
+}
+
 interface GameState {
   tiles: TileData[]
   lastSaved: string
