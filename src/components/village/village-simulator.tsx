@@ -63,6 +63,7 @@ const generateVillageTiles = (size: number): VillageTile[] => {
           color: '#73c251',
           height: isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
           type: isCenter ? 'house' : (isForest ? 'forest' : 'empty'),
+          isBuilding: isCenter,
           q,
           r,
           s,
@@ -101,7 +102,8 @@ const VillageSimulator = () => {
         newTiles[index] = {
           ...newTiles[index],
           type: buildingType,
-          resources: RESOURCE_YIELD
+          resources: RESOURCE_YIELD,
+          isBuilding: true,
         }
       }
       return newTiles
@@ -172,8 +174,12 @@ const VillageSimulator = () => {
               return updated
             })
           }, FOREST_CUT)
+        } else if (tile.isBuilding) {
+          tile.buildingRotation = (tile.buildingRotation || 0) + Math.PI / 3; // Rotate 60 degrees
+          newTiles[index] = tile;
         }
       }
+
       return newTiles
     })
   }, [resources.grain, resources.wood, updateResources])
@@ -199,7 +205,7 @@ const VillageSimulator = () => {
               <GrainModel type={tile.resources! > 0 ? "full-grown" : "dirt"} />
              ): (
               (Object.keys(buildingUrls) ?? []).includes(tile.type)) && (
-                <BuildingModel type={tile.type as BuildingType} />
+                <BuildingModel type={tile.type as BuildingType} rotation={tile.buildingRotation} />
              )}
           </HexagonTile>
         ))}

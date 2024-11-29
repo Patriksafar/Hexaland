@@ -9,6 +9,7 @@ interface TileData {
   isAnimating?: boolean
   isBuilding?: boolean
   buildProgress?: number
+  buildingRotation?: number
 }
 
 interface GameState {

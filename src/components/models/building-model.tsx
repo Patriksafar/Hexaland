@@ -16,17 +16,8 @@ export const buildingUrls = {
 }
 export type BuildingType = keyof typeof buildingUrls
 
-const BuildingModel = ({ type }: { type: BuildingType }) => {
-  const group = useRef<any>();
-  const { scene, animations } = useGLTF(buildingUrls[type])
-  const { actions, mixer, ref } = useAnimations(animations, group);
-
-  console.log(type);
-  
-  console.log(animations);
-  useEffect(() => {
-    actions.Experiment?.play();
-  }, [actions]);
+const BuildingModel = ({ type, rotation }: { type: BuildingType, rotation?: number }) => {
+  const { scene } = useGLTF(buildingUrls[type])
   
   scene.traverse((child) => {
     if (child instanceof Mesh) {
@@ -35,7 +26,7 @@ const BuildingModel = ({ type }: { type: BuildingType }) => {
     }
   })
 
-  return <group ref={ref as any}><primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} /></group>
+  return <group rotation={[0, rotation || 0, 0]}><primitive object={scene.clone()} scale={[0.5, 0.5, 0.5]} position={[0, 0, 0]} /></group>
  }
 
  // Preload all building models
