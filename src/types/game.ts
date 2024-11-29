@@ -1,4 +1,5 @@
 interface TileData {
+  id: string
   pos: [number, number, number]
   color: string
   height: number

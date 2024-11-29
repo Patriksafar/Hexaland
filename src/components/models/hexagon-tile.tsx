@@ -4,6 +4,7 @@ import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
 interface HexagonTileProps {
+  id: string
   position: [number, number, number]
   color: string
   height: number
@@ -13,7 +14,7 @@ interface HexagonTileProps {
   buildProgress?: number
   onHover?: () => void
   onUnhover?: () => void
-  onClick?: (position: [number, number, number]) => void
+  onClick?: (id: string) => void
   children?: React.ReactNode
 }
 
@@ -49,6 +50,7 @@ const hexagonShape = () => {
 }
 
 const HexagonTile: React.FC<HexagonTileProps> = ({ 
+  id,
   position, 
   color, 
   height, 
@@ -98,7 +100,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     if (sound && !sound.isPlaying) {
       sound.play()
     }
-    if (onClick) onClick(position)
+    if (onClick) onClick(id)
   }
 
   return (

@@ -25,6 +25,7 @@ const RESOURCE_YIELD = 10
 
 const generateVillageTiles = (size: number): VillageTile[] => {
   const tiles: VillageTile[] = []
+  let idCounter = 0; // Initialize a counter for unique IDs
   let forestCount = 0
   
   for (let q = -Math.floor(size/2); q <= Math.floor(size/2); q++) {
@@ -59,6 +60,7 @@ const generateVillageTiles = (size: number): VillageTile[] => {
         }
         
         tiles.push({
+          id: `tile-${idCounter++}`, // Assign a unique ID
           pos: [x, 0, z],
           color: '#73c251',
           height: isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
@@ -81,21 +83,19 @@ const VillageSimulator = () => {
   const [tiles, setTiles] = useState<VillageTile[]>([])
   const { resources, updateResources } = useResources()
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedTilePosition, setSelectedTilePosition] = useState<[number, number, number] | null>(null)
-
+  const [selectedTileId, setSelectedTileId] = useState<string | null>(null)
+  
   useEffect(() => {
     setTiles(generateVillageTiles(VILLAGE_SIZE))
   }, [])
 
   const handleBuildingSelect = useCallback((buildingType: string) => {
-    if (!selectedTilePosition) return
+    if (!selectedTileId) return
 
     setTiles(prevTiles => {
       const newTiles = [...prevTiles]
       const index = newTiles.findIndex(tile => 
-        tile.pos[0] === selectedTilePosition[0] && 
-        tile.pos[1] === selectedTilePosition[1] && 
-        tile.pos[2] === selectedTilePosition[2]
+       tile.id === selectedTileId
       )
 
       if (index !== -1) {
@@ -108,15 +108,13 @@ const VillageSimulator = () => {
       }
       return newTiles
     })
-  }, [selectedTilePosition])
+  }, [selectedTileId])
 
-  const handleTileClick = useCallback((position: [number, number, number]) => {
+  const handleTileClick = useCallback((id: string) => {
     setTiles(prevTiles => {
       const newTiles = [...prevTiles]
       const index = newTiles.findIndex(tile => 
-        tile.pos[0] === position[0] && 
-        tile.pos[1] === position[1] && 
-        tile.pos[2] === position[2]
+        tile.id === id
       )
 
       if (index !== -1) {
@@ -124,7 +122,7 @@ const VillageSimulator = () => {
         const now = Date.now()
 
         if (tile.type === 'empty') {
-          setSelectedTilePosition(position)
+          setSelectedTileId(id)
           setDialogOpen(true)
         } else if (tile.type === 'grain' && 
                    tile.resources! > 0 && 
@@ -196,6 +194,7 @@ const VillageSimulator = () => {
             color={tile.color}
             height={tile.height}
             type={tile.type}
+            id={tile.id}
             onClick={handleTileClick}
           > 
             {tile.type === "forest" && (
