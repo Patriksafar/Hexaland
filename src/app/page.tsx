@@ -1,47 +1,43 @@
 'use client'
 
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera, SoftShadows } from '@react-three/drei'
-import { MathUtils, DoubleSide } from 'three'
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
+import { DoubleSide, MathUtils } from 'three'
+import VillageSimulator from '@/components/village/village-simulator'
+import ResourceCounter from '@/components/resource-counter'
 
-import MedievalLand from '@/components/models/medieval-land'
-// import CameraController from '@/components/camera-controller'
-
-export default function Component() {
+export default function VillagePage() {
   return (
-    <div className="w-full h-screen bg-[#3965ce] ">
+    <div className="w-full h-screen bg-[#3965ce]">
+      <ResourceCounter />
       <Canvas
         shadows="soft"
         dpr={[1, 2]}
-        performance={{ min: 0.5 }}
         gl={{ 
           antialias: false,
           powerPreference: "high-performance"
         }}
       > 
-          <ambientLight intensity={0.5} />
-          <directionalLight
-            castShadow
-            position={[2.5, 8, 5]}
-            intensity={1.5}
-            shadow-mapSize={1024}
-          />
-          <pointLight position={[-10, 4, -20]} color="white" intensity={1} />
-          <pointLight position={[0, -10, 0]} intensity={1} />
-        <SoftShadows 
-          size={10}
-          samples={8}
-          focus={0.5}
+        <ambientLight intensity={0.5} />
+        <directionalLight
+          castShadow
+          position={[2.5, 8, 5]}
+          intensity={1.5}
+          shadow-mapSize={1024}
         />
         <PerspectiveCamera makeDefault position={[0, 20, 25]} />
-        {/* <CameraController /> */}
         <OrbitControls 
           enableZoom={true}
-          minPolarAngle={MathUtils.degToRad(20)} // Restrict to 0 degrees (top view)
-          maxPolarAngle={MathUtils.degToRad(80)} // Restrict to 80 degrees (slightly above horizon)
-        />
-        <hemisphereLight 
-          args={["#ffffff", "#b1e1ff", 0.2]}
+          minPolarAngle={MathUtils.degToRad(45)}
+          maxPolarAngle={MathUtils.degToRad(45)}
+          enableRotate={true}
+          maxDistance={30}
+          minDistance={10}
+          enablePan={false}
+          panSpeed={0}
+          rotateSpeed={0.3}
+          minAzimuthAngle={MathUtils.degToRad(-30)}
+          maxAzimuthAngle={MathUtils.degToRad(30)}
         />
         <mesh 
           rotation={[-Math.PI / 2, 0, 0]} 
@@ -54,8 +50,8 @@ export default function Component() {
             side={DoubleSide} 
           />
         </mesh>
-        <MedievalLand />
+        <VillageSimulator />
       </Canvas>
     </div>
   )
-}
+} 
