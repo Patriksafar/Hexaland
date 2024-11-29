@@ -25,6 +25,8 @@ const buildingCosts: Record<BuildingType, { grain: number; wood: number }> = {
   grain: { grain: 5, wood: 1 },
   tavern: { grain: 10, wood: 5 },
   blacksmith: { grain: 15, wood: 10 },
+  stables: { grain: 20, wood: 15 },
+  church: { grain: 25, wood: 20 },
 }
 
 interface BuildingSelectionDialogProps {
