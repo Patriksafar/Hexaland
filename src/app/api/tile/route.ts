@@ -1,31 +1,39 @@
-import { tiles } from "../tiles-data"
+import db from "@/db"
+import { villageTileTable } from "@/db/schema"
+import { eq } from "drizzle-orm"
+
+type UpdateVillageTilePayload = {
+  id: string
+} & Partial<typeof villageTileTable>
 
 export async function POST(request: Request) {
-  const data = await request.json()
-  console.log(tiles)
+  const payload = await request.json() as UpdateVillageTilePayload
+  
+  if(!payload.id) {
+    return new Response("No id provided", {
+      status: 400,
+    })
+  }
 
-  if(!tiles || tiles.length === 0) {
+  const tile = await db.query.villageTileTable.findFirst({
+    where: (tiles, { eq }) => eq(tiles.id, decodeURIComponent(payload.id)),
+  })
+
+  if(!tile) {
     return new Response("No tiles found", {
       status: 404,
     })
   }
-
-  const tile = tiles.find(tile => tile.id === data.id)
   
-  if(!tile) {
-    return new Response("Tile not found", {
-      status: 404,
+  const [response] = await db
+    .update(villageTileTable)
+    .set({
+      ...payload,
     })
-  }
+    .where(eq(villageTileTable.id, payload.id))
+    .returning();
 
-  tiles[tiles.indexOf(tile)] = {
-    ...tile,
-    ...data,
-  }
-
-  const updatedTile = tiles.find(tile => tile.id === data.id)
-
-  return new Response(JSON.stringify(updatedTile), {
+  return new Response(JSON.stringify(response), {
     status: 200,
   })
 }

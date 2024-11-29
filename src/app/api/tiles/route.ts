@@ -1,5 +1,6 @@
 import { VillageTile } from '@/types/game';
-import { tiles } from '../tiles-data';
+import db from '@/db';
+import { villageTileTable } from '@/db/schema';
 
 const HEX_WIDTH = 1
 const HEX_HEIGHT = Math.sqrt(3) / 2
@@ -61,11 +62,44 @@ const generateVillageTiles = (size: number): VillageTile[] => {
 }
 
 export async function GET(request: Request) {
-    if(tiles.length === 0) {
-      tiles.push(...generateVillageTiles(VILLAGE_SIZE)) // Generate tiles with a size of 10
+    const data = await db.query.villageTileTable.findMany()
+
+    if(!data.length) {
+      const generatedTiles = generateVillageTiles(VILLAGE_SIZE).map((newTile) => {
+        return {
+          ...newTile,
+          id: undefined,
+          isBuilding: newTile.isBuilding ?? false,
+          x: newTile.pos[0],
+          y: newTile.pos[1],
+          z: newTile.pos[2],
+          resources: newTile.resources ?? 0,
+          lastHarvested: newTile.lastHarvested ?? 0,
+          buildingRotation: newTile.buildingRotation ?? 0,
+        }
+      })
+      const newTiles = await db.insert(villageTileTable).values(generatedTiles).returning().execute()
+
+      const transformedTiles = newTiles.map((newTile) => {
+        return {
+          ...newTile,
+          pos: [newTile.x, newTile.y, newTile.z],
+        }
+      })
+
+      return new Response(JSON.stringify(transformedTiles), {
+        status: 200,
+      })
     }
-    
-    return new Response(JSON.stringify(tiles), {
+
+    const transformedTiles = data.map((newTile) => {
+      return {
+        ...newTile,
+        pos: [newTile.x, newTile.y, newTile.z],
+      }
+    })
+
+    return new Response(JSON.stringify(transformedTiles), {
       status: 200,
     })
 }
