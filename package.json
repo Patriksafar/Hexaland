@@ -13,7 +13,9 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@react-three/drei": "^9.117.3",
     "@react-three/fiber": "^8.17.10",
+    "@vercel/analytics": "^1.4.1",
     "@vercel/postgres": "^0.10.0",
+    "add": "^2.0.6",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
@@ -27,7 +29,8 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.170.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "@types/node": "^20",

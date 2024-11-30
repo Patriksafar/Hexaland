@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { SocketProvider } from '@/hooks/useSocket'
 import { ResourceProvider } from "@/hooks/useResources";
+import { Analytics } from "@vercel/analytics/react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,13 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en">      
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      > 
         <SocketProvider>
           <ResourceProvider>
             {children}
+            <Analytics />
           </ResourceProvider>
         </SocketProvider>
       </body>
