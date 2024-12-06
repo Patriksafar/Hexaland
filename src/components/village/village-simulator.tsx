@@ -20,8 +20,6 @@ interface VillageTile extends TileData {
 const HARVEST_COOLDOWN = 10000 // 10 seconds
 const FOREST_CUT = 60000
 const RESOURCE_YIELD = 10
-const HEX_WIDTH = 1; // Define the appropriate value for HEX_WIDTH
-const HEX_HEIGHT = 1; // Define the appropriate value for HEX_HEIGHT
   
 const VillageSimulator = () => {
   const [tiles, setTiles] = useState<VillageTile[]>([])
