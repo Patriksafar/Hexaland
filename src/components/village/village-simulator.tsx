@@ -22,52 +22,10 @@ const FOREST_CUT = 60000
 const RESOURCE_YIELD = 10
 const HEX_WIDTH = 1; // Define the appropriate value for HEX_WIDTH
 const HEX_HEIGHT = 1; // Define the appropriate value for HEX_HEIGHT
-
-  // Function to generate border tiles around existing tiles
-  const generateBorderTiles = (tiles: VillageTile[]): VillageTile[] => {
-    const borderTiles: VillageTile[] = []
-    const tileSet = new Set(tiles.map(tile => `${tile.q},${tile.r}`))
-    const borderTileSet = new Set()
-
-    tiles.forEach(tile => {
-      const neighbors = [
-        { q: tile.q + 1, r: tile.r },
-        { q: tile.q - 1, r: tile.r },
-        { q: tile.q, r: tile.r + 1 },
-        { q: tile.q, r: tile.r - 1 },
-        { q: tile.q + 1, r: tile.r - 1 },
-        { q: tile.q - 1, r: tile.r + 1 },
-      ]
-
-      neighbors.forEach(neighbor => {
-        const key = `${neighbor.q},${neighbor.r}`
-        if (!tileSet.has(key) && !borderTileSet.has(key)) {
-          const x = HEX_WIDTH * (0.9 * neighbor.q)
-          const z = HEX_HEIGHT * (Math.sqrt(1.06) * neighbor.r + Math.sqrt(1.06) / 2 * neighbor.q)
-          borderTiles.push({
-            id: `border-${key}`,
-            pos: [x, 0, z],
-            color: '#ffffff',
-            height: 0.1,
-            type: 'border',
-            q: neighbor.q,
-            r: neighbor.r,
-            s: -neighbor.q - neighbor.r,
-            isBuilding: false,
-            resources: 0,
-            lastHarvested: 0,
-          })
-          borderTileSet.add(key)
-        }
-      })
-    })
-
-    return borderTiles
-  }
   
 const VillageSimulator = () => {
   const [tiles, setTiles] = useState<VillageTile[]>([])
-  const { resources, updateResources } = useResources()
+  const {resources, updateResources } = useResources()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null)
   const {isEditMode} = useEditMode()
@@ -83,8 +41,6 @@ const VillageSimulator = () => {
 
     getData()
   }, [])
-
-  const borderTiles = generateBorderTiles(tiles)
 
   const handleBuildingSelect = useCallback(async (buildingType: string) => {
     if (!selectedTileId) return
@@ -121,16 +77,45 @@ const VillageSimulator = () => {
     })
   }, [selectedTileId])
 
+  const handleBorderTileClick = useCallback(async (id: string) => {
+    const response = await fetch(`/api/expand/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: id
+      })
+    })
+
+    const data = await response.json() as VillageTile[]
+    
+    setTiles(data)
+
+  }, [])
+
+  const handleClickOnEmptyTile = useCallback(async (id: string) => {
+    setSelectedTileId(id)
+    setDialogOpen(true)
+  }, [])
+
   const handleTileClick = useCallback(async (id: string) => {
     const tile = tiles.find(tile => 
       tile.id === id
     )
-    
+
     if(!tile) return
 
     if (tile.type === 'empty') {
-      setSelectedTileId(id)
-      setDialogOpen(true)
+      handleClickOnEmptyTile(id)
+
+      return
+    }
+
+    if(tile.type === "border") {
+       handleBorderTileClick(id)
+
+       return 
     }
 
     if(tile.isBuilding && tile.type !== 'forest' && tile.type !== "grain" && isEditMode) {
@@ -234,24 +219,19 @@ const VillageSimulator = () => {
       return newTiles
     })
   }, [tiles, isEditMode, updateResources, resources.grain, resources.wood])
-    
+  
+  const displayedTiles = tiles.filter(tile => {
+    if(isEditMode) return true
+
+    return tile.type !== 'border'
+  })
+
   return (
     <>
       <group 
         rotation={[0, Math.PI / 6.5, 0]}
         >
-        {isEditMode && borderTiles.map((tile) => (
-          <HexagonTile
-            key={tile.id}
-            position={tile.pos}
-            color={tile.color}
-            height={tile.height}
-            type={tile.type}
-            id={tile.id}
-            onClick={handleTileClick}
-          />
-        ))}
-        {tiles.map((tile) => (
+        {displayedTiles.map((tile) => (
           <HexagonTile
             key={`${tile.q},${tile.r},${tile.s}`}
             position={tile.pos}

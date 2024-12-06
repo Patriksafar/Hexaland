@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 
 import BuildingModel, {BuildingType, buildingUrls}  from '@/components/models/building-model'
 import HexagonTile from '@/components/models/hexagon-tile'
-import { Html } from '@react-three/drei'
-import BuildingSelectionDialog from '../dialogs/building-selection-dialog'
 import { TileData, GameState } from '@/types/game'
 import { saveGameState, loadGameState } from '@/utils/storage'
 import { useSocket } from '@/hooks/useSocket'
@@ -26,7 +24,8 @@ const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
       const maxCoord = Math.max(Math.abs(q), Math.abs(r), Math.abs(s))
       if (maxCoord < Math.floor((mapSize + borderSize * 2) / 2)) {
         const isBorderTile = maxCoord >= Math.floor(mapSize / 2) && maxCoord < Math.floor((mapSize + borderSize * 2) / 2)
-        tileData.push({
+        const newTile: TileData = {
+          id: `${q},${r},${s}`,
           pos: [x, isBorderTile ? -0.1 : 0, z],
           color: isBorderTile ? '#ffffff' : '#67e8b1',
           height: 0.1,
@@ -36,18 +35,16 @@ const generateTiles = (mapSize: number, borderSize: number): TileData[] => {
           s,
           isBuilding: false,
           buildProgress: 0
-        })
+        }
+        tileData.push(newTile)
       }
     }
   }
-  
   return tileData
 }
 
 const MedievalLand: React.FC = () => {
   const [tiles, setTiles] = useState<TileData[]>([])
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedTilePosition, setSelectedTilePosition] = useState<[number, number, number] | null>(null)
   const socket = useSocket()
 
   useEffect(() => {
@@ -94,57 +91,11 @@ const MedievalLand: React.FC = () => {
     }
   }, [socket])
 
-  const handleBuildingSelect = useCallback((buildingType: string) => {
-    if (!selectedTilePosition) return
-
+  const handleTileClick = useCallback((id: string) => {
     setTiles(prevTiles => {
       const newTiles = [...prevTiles]
       const index = newTiles.findIndex(tile => 
-        tile.pos[0] === selectedTilePosition[0] && 
-        tile.pos[1] === selectedTilePosition[1] && 
-        tile.pos[2] === selectedTilePosition[2]
-      )
-
-      if (index !== -1) {
-        const updatedTile = {
-          ...newTiles[index],
-          isBuilding: true,
-          buildProgress: 0,
-          type: buildingType
-        }
-        newTiles[index] = updatedTile
-        socket.emit('tileUpdated', updatedTile)
-
-        // Start building process
-        const buildInterval = setInterval(() => {
-          setTiles(currentTiles => {
-            const updatedTiles = [...currentTiles]
-            const buildingTile = updatedTiles[index]
-            if (buildingTile.buildProgress! < 1) {
-              buildingTile.buildProgress! += 0.1
-              // Emit progress update
-              socket.emit('tileUpdated', buildingTile)
-            } else {
-              buildingTile.isBuilding = false
-              // Emit final state
-              socket.emit('tileUpdated', buildingTile)
-              clearInterval(buildInterval)
-            }
-            return updatedTiles
-          })
-        }, 100)
-      }
-      return newTiles
-    })
-  }, [selectedTilePosition, socket])
-
-  const handleTileClick = useCallback((position: [number, number, number]) => {
-    setTiles(prevTiles => {
-      const newTiles = [...prevTiles]
-      const index = newTiles.findIndex(tile => 
-        tile.pos[0] === position[0] && 
-        tile.pos[1] === position[1] && 
-        tile.pos[2] === position[2]
+      tile.id === id
       )
 
       if (index !== -1) {
@@ -181,27 +132,27 @@ const MedievalLand: React.FC = () => {
                 r: nr,
                 s: ns,
                 isBuilding: false,
-                buildProgress: 0
+                buildProgress: 0,
+                id: `${nq}, ${nr}, ${ns}`
               }
+              
               newTiles.push(newBorderTile)
               // Emit socket event for the new border tile
               socket.emit('tileUpdated', newBorderTile)
             }
           })
-        } else if (newTiles[index].type === 'grass') {
-          setSelectedTilePosition(position)
-          setDialogOpen(true)
-        }
+        } 
       }
       return newTiles
     })
-  }, [socket, setDialogOpen, setSelectedTilePosition])
+  }, [socket])
 
   return (
     <>
       <group>
         {tiles.map((tile) => (
           <HexagonTile
+            id={tile.id}
             key={`${tile.q},${tile.r},${tile.s}`}
             position={tile.pos}
             color={tile.color}
@@ -217,13 +168,6 @@ const MedievalLand: React.FC = () => {
           </HexagonTile>
         ))}
       </group>
-      <Html>
-        <BuildingSelectionDialog
-          isOpen={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          onSelect={handleBuildingSelect}
-        />
-      </Html>
     </>
   )
 }

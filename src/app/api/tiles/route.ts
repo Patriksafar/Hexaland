@@ -44,9 +44,9 @@ const generateVillageTiles = (size: number): VillageTile[] => {
         tiles.push({
           id: `tile-${idCounter++}`, // Assign a unique ID
           pos: [x, 0, z],
-          color: '#73c251',
-          height: isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
-          type: isCenter ? 'house' : (isForest ? 'forest' : 'empty'),
+          color: isBorder ? "#ffffff" : "#73c251",
+          height: isBorder ? 0.1 : isCenter ? 0.5 : tileHeight,  // Center tile stays at 0.5
+          type: isBorder ? 'border' : isCenter ? 'house' : (isForest ? 'forest' : 'empty'),
           isBuilding: isCenter,
           q,
           r,
@@ -61,7 +61,7 @@ const generateVillageTiles = (size: number): VillageTile[] => {
   return tiles
 }
 
-export async function GET(request: Request) {
+export async function GET() {
     const data = await db.query.villageTileTable.findMany()
 
     if(!data.length) {
@@ -102,4 +102,12 @@ export async function GET(request: Request) {
     return new Response(JSON.stringify(transformedTiles), {
       status: 200,
     })
+}
+
+export async function DELETE() {
+  const data = await db.delete(villageTileTable).execute()
+
+  return new Response(JSON.stringify(data), {
+    status: 200,
+  })
 }
