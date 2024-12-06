@@ -1,5 +1,5 @@
 import db from "@/db"
-import { VillageTileInsertSchema, VillageTileSchema, villageTileTable } from "@/db/schema"
+import { VillageTileInsertSchema, villageTileTable } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { HEX_HEIGHT, HEX_WIDTH } from "../tiles/route"
 

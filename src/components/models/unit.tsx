@@ -27,8 +27,7 @@ export const UnitModel = (props: GroupProps) => {
         <mesh
           castShadow
           receiveShadow
-          // @ts-ignore
-          geometry={nodes.unit.geometry}
+          geometry={(nodes.unit as THREE.Mesh).geometry}
           material={materials.hexagons_medieval}
         />
       </group>
