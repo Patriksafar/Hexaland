@@ -6,19 +6,18 @@ export const EditModeController = () => {
   
   const handleDeleteMap = async () => {
     // DELETE MAP LOGIC
-    const response = await fetch(`/api/tiles`, {
+    await fetch(`/api/tiles`, {
       method: 'DELETE',
     })
-
-    const updatedTileData = await response.json()
-
   }
 
   return (
     <div className="fixed top-0 right-0 p-4 z-10">
-      <button onClick={handleDeleteMap}>
+      {process.env.NODE_ENV === 'development' && (
+        <button onClick={handleDeleteMap}>
         Delete map
       </button>
+      )}
       <button
         className="p-2 bg-gray-700 text-white rounded select-none"
         onClick={toggleEditMode}

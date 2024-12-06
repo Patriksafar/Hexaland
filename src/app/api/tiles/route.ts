@@ -4,9 +4,8 @@ import { villageTileTable } from '@/db/schema';
 
 export const HEX_WIDTH = 1
 export const HEX_HEIGHT = Math.sqrt(3) / 2
+const DEFAULT_VILLAGE_SIZE = 6
 
-
-const DEFAULT_VILLAGE_SIZE = 10
 const generateVillageTiles = (size: number): VillageTile[] => {
   const tiles: VillageTile[] = []
   let idCounter = 0; // Initialize a counter for unique IDs
