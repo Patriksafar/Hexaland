@@ -231,7 +231,7 @@ const VillageSimulator = () => {
 
       return newTiles
     })
-  }, [resources.grain, resources.wood, updateResources, tiles])
+  }, [tiles, isEditMode, updateResources, resources.grain, resources.wood])
 
   return (
     <>
