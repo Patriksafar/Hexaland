@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   // update clicked tile 
   const expandedTile = await db.update(villageTileTable).set({
-    type: "grass",
+    type: "empty",
     y: 0,
     color: "#73c251",
     height: 0.5,
