@@ -2,9 +2,11 @@ import { VillageTile } from '@/types/game';
 import db from '@/db';
 import { villageTileTable } from '@/db/schema';
 
-const HEX_WIDTH = 1
-const HEX_HEIGHT = Math.sqrt(3) / 2
-const VILLAGE_SIZE = 10
+export const HEX_WIDTH = 1
+export const HEX_HEIGHT = Math.sqrt(3) / 2
+
+
+const DEFAULT_VILLAGE_SIZE = 10
 const generateVillageTiles = (size: number): VillageTile[] => {
   const tiles: VillageTile[] = []
   let idCounter = 0; // Initialize a counter for unique IDs
@@ -65,7 +67,7 @@ export async function GET() {
     const data = await db.query.villageTileTable.findMany()
 
     if(!data.length) {
-      const generatedTiles = generateVillageTiles(VILLAGE_SIZE).map((newTile) => {
+      const generatedTiles = generateVillageTiles(DEFAULT_VILLAGE_SIZE).map((newTile) => {
         return {
           ...newTile,
           id: undefined,

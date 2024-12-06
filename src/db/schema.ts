@@ -1,6 +1,7 @@
 import { boolean, doublePrecision, integer, pgTable, text, varchar } from "drizzle-orm/pg-core";
 import { createId} from "@paralleldrive/cuid2"
-import { float } from "drizzle-orm/mysql-core";
+import { InferInsertModel, InferModel, InferSelectModel } from "drizzle-orm";
+
 export const usersTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 255 }).notNull(),
@@ -25,3 +26,7 @@ export const villageTileTable = pgTable("village_tile", {
   buildingRotation: doublePrecision(),
   type: varchar({ length: 255 }).notNull(),
 })
+
+
+export type VillageTileSchema = InferSelectModel<typeof villageTileTable>
+export type VillageTileInsertSchema = InferInsertModel<typeof villageTileTable>
