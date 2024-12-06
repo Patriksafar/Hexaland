@@ -27,6 +27,7 @@ const HEX_HEIGHT = 1; // Define the appropriate value for HEX_HEIGHT
   const generateBorderTiles = (tiles: VillageTile[]): VillageTile[] => {
     const borderTiles: VillageTile[] = []
     const tileSet = new Set(tiles.map(tile => `${tile.q},${tile.r}`))
+    const borderTileSet = new Set()
 
     tiles.forEach(tile => {
       const neighbors = [
@@ -38,9 +39,9 @@ const HEX_HEIGHT = 1; // Define the appropriate value for HEX_HEIGHT
         { q: tile.q - 1, r: tile.r + 1 },
       ]
 
-      neighbors.forEach((neighbor, index) => {
-        const key = `${neighbor.q},${neighbor.r}-${index}`
-        if (!tileSet.has(key)) {
+      neighbors.forEach(neighbor => {
+        const key = `${neighbor.q},${neighbor.r}`
+        if (!tileSet.has(key) && !borderTileSet.has(key)) {
           const x = HEX_WIDTH * (0.9 * neighbor.q)
           const z = HEX_HEIGHT * (Math.sqrt(1.06) * neighbor.r + Math.sqrt(1.06) / 2 * neighbor.q)
           borderTiles.push({
@@ -56,6 +57,7 @@ const HEX_HEIGHT = 1; // Define the appropriate value for HEX_HEIGHT
             resources: 0,
             lastHarvested: 0,
           })
+          borderTileSet.add(key)
         }
       })
     })
@@ -232,7 +234,7 @@ const VillageSimulator = () => {
       return newTiles
     })
   }, [tiles, isEditMode, updateResources, resources.grain, resources.wood])
-
+    
   return (
     <>
       <group 

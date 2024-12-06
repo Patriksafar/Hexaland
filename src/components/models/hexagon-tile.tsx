@@ -1,6 +1,5 @@
 'use client'
 
-import { Slash } from 'lucide-react'
 import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
