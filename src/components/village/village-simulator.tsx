@@ -38,8 +38,8 @@ const HEX_HEIGHT = 1; // Define the appropriate value for HEX_HEIGHT
         { q: tile.q - 1, r: tile.r + 1 },
       ]
 
-      neighbors.forEach(neighbor => {
-        const key = `${neighbor.q},${neighbor.r}`
+      neighbors.forEach((neighbor, index) => {
+        const key = `${neighbor.q},${neighbor.r}-${index}`
         if (!tileSet.has(key)) {
           const x = HEX_WIDTH * (0.9 * neighbor.q)
           const z = HEX_HEIGHT * (Math.sqrt(1.06) * neighbor.r + Math.sqrt(1.06) / 2 * neighbor.q)

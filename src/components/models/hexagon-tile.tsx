@@ -1,5 +1,6 @@
 'use client'
 
+import { Slash } from 'lucide-react'
 import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
@@ -136,7 +137,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
           ]} 
         />
         <meshStandardMaterial 
-          color={hovered ? '#6e88e7' : color}
+          color={hovered ? '#e76e6e' : color}
           transparent={false}
           depthWrite={true}
           depthTest={true}
