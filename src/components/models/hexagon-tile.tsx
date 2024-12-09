@@ -201,13 +201,12 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
         <group position={[0, height, 0]} key={finalColor}>
           <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <extrudeGeometry args={[hexagonShape(), { depth: wallHeight, bevelEnabled: false }]} />
-            <meshStandardMaterial side={THREE.BackSide} transparent opacity={1}>
+            <meshStandardMaterial side={THREE.BackSide} transparent={true} opacity={0.5}>
               <GradientTexture
-                stops={[0, 0.5]} // As many stops as you want
-                colors={[finalColor, "#ffffff00"]} // Colors need to match the number of stops
+                stops={[0]} // As many stops as you want
+                colors={[finalColor, "rgba(255, 255, 255, 0)"]} // Use rgba for transparency
               />
             </meshStandardMaterial>
-            {/* <meshStandardMaterial side={THREE.BackSide} color="#05aa5a" transparent opacity={0.5} /> */}
           </mesh>
           <group position={[0, 0.2, 0]} ref={hoveredBuildingRef}>
             <BuildingModel type="blacksmith" />
