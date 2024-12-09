@@ -1,11 +1,11 @@
 'use client'
 
 import { useEditMode } from '@/hooks/useEditMode'
-import { is } from 'drizzle-orm'
 import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import BuildingModel from './building-model'
 import { useFrame } from '@react-three/fiber'
+import { GradientTexture } from '@react-three/drei'
 
 interface HexagonTileProps {
   id: string
@@ -75,6 +75,8 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const levitateSpeed = 0.001;
   const maxHeight = 0.3;
   const minHeight = 0.15;
+
+  const wallHeight = 0.5;
 
   useFrame(() => {
     if (hoveredBuildingRef.current) {
@@ -195,15 +197,25 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
         />
         
       </mesh>
+      {isBuildMode && hovered && (
+        <group position={[0, height, 0]} key={finalColor}>
+          <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <extrudeGeometry args={[hexagonShape(), { depth: wallHeight, bevelEnabled: false }]} />
+            <meshStandardMaterial side={THREE.BackSide} transparent opacity={1}>
+              <GradientTexture
+                stops={[0, 0.5]} // As many stops as you want
+                colors={[finalColor, "#ffffff00"]} // Colors need to match the number of stops
+              />
+            </meshStandardMaterial>
+            {/* <meshStandardMaterial side={THREE.BackSide} color="#05aa5a" transparent opacity={0.5} /> */}
+          </mesh>
+          <group position={[0, 0.2, 0]} ref={hoveredBuildingRef}>
+            <BuildingModel type="blacksmith" />
+          </group>
+        </group>
+      )}
       {(type !== 'grass' && type !== 'border') && (
         <group position={[0, height, 0]} rotation={[0, Math.PI / 6.1, 0]}>
-
-          {isBuildMode && hovered && (
-            <group position={[0, 0.2, 0]} ref={hoveredBuildingRef}>
-              <BuildingModel type="blacksmith" />
-            </group>
-          )}
-
           {children}
         </group>
       )}

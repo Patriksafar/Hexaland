@@ -26,7 +26,7 @@ const VillageSimulator = () => {
   const {resources, updateResources } = useResources()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null)
-  const {isEditMode, isBuildMode} = useEditMode()
+  const {isEditMode } = useEditMode()
 
   // LOAD TILES FROM API
   useEffect(() => {
