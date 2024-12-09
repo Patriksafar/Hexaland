@@ -68,7 +68,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const meshRef = useRef<THREE.Mesh>(null)
   const [sound, setSound] = useState<THREE.Audio | null>(null)
   const currentPosition = position
-  const { isBuildMode, isEditMode } = useEditMode()
+  const { isBuildMode } = useEditMode()
 
   const hoveredBuildingRef = useRef<THREE.Group>(null)
   let levitateDirection = 1;
@@ -129,12 +129,12 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   const getTileColor = () => {
     if (hovered && isBuildMode) {
       if((type === "empty" || type === "border")) {
-        return '#4ab682'
+        return '#05aa5a'
       }
       
       return '#b64a55'
     }
-    
+
     // disable hover effect on buildings
     if (isBuildMode && hasBuildings) {
 
@@ -143,7 +143,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
 
     if(hovered && (type === "border" || type !== "empty") ) {
       
-      return '#4ab682'
+      return '#05aa5a'
     }
 
     return color
@@ -198,7 +198,7 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
       {(type !== 'grass' && type !== 'border') && (
         <group position={[0, height, 0]} rotation={[0, Math.PI / 6.1, 0]}>
 
-          {isBuildMode && hovered && type === "empty" && (
+          {isBuildMode && hovered && (
             <group position={[0, 0.2, 0]} ref={hoveredBuildingRef}>
               <BuildingModel type="blacksmith" />
             </group>
