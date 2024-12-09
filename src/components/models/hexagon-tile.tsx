@@ -1,7 +1,11 @@
 'use client'
 
+import { useEditMode } from '@/hooks/useEditMode'
+import { is } from 'drizzle-orm'
 import { memo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
+import BuildingModel from './building-model'
+import { useFrame } from '@react-three/fiber'
 
 interface HexagonTileProps {
   id: string
@@ -58,12 +62,29 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
   onHover, 
   onUnhover, 
   onClick,
-  children
+  children,
 }) => {
   const [hovered, setHovered] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
   const [sound, setSound] = useState<THREE.Audio | null>(null)
   const currentPosition = position
+  const { isBuildMode, isEditMode } = useEditMode()
+
+  const hoveredBuildingRef = useRef<THREE.Group>(null)
+  let levitateDirection = 1;
+  const levitateSpeed = 0.001;
+  const maxHeight = 0.3;
+  const minHeight = 0.15;
+
+  useFrame(() => {
+    if (hoveredBuildingRef.current) {
+      hoveredBuildingRef.current.position.y += levitateSpeed * levitateDirection;
+
+      if (hoveredBuildingRef.current.position.y >= maxHeight || hoveredBuildingRef.current.position.y <= minHeight) {
+        levitateDirection *= -1;
+      }
+    }
+  })
 
   useEffect(() => {
     // Create audio listener and sound
@@ -103,6 +124,33 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
     if (onClick) onClick(id)
   }
 
+  const hasBuildings = type !== "empty"
+
+  const getTileColor = () => {
+    if (hovered && isBuildMode) {
+      if((type === "empty" || type === "border")) {
+        return '#4ab682'
+      }
+      
+      return '#b64a55'
+    }
+    
+    // disable hover effect on buildings
+    if (isBuildMode && hasBuildings) {
+
+      return '#898d89'
+    }
+
+    if(hovered && (type === "border" || type !== "empty") ) {
+      
+      return '#4ab682'
+    }
+
+    return color
+  }
+
+  const finalColor = getTileColor()
+
   return (
     <group position={new THREE.Vector3(...currentPosition)}>
       <mesh 
@@ -120,9 +168,10 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
           e.stopPropagation();
           handleClick();
         }}
-        castShadow
+        castShadow={!(isBuildMode && hasBuildings)}
         receiveShadow
       >
+
         <extrudeGeometry 
           args={[
             hexagonShape(), 
@@ -131,20 +180,30 @@ const HexagonTile: React.FC<HexagonTileProps> = ({
               bevelEnabled: true,
               bevelThickness: 0.02,
               bevelSize: 0.02,
-              bevelSegments: 5
+              bevelSegments: 5,
             }
           ]} 
         />
+      
         <meshStandardMaterial 
-          color={hovered ? '#e76e6e' : color}
+          color={finalColor}
           transparent={false}
           depthWrite={true}
           depthTest={true}
           side={THREE.FrontSide}
+          key={"opaque"}
         />
+        
       </mesh>
       {(type !== 'grass' && type !== 'border') && (
         <group position={[0, height, 0]} rotation={[0, Math.PI / 6.1, 0]}>
+
+          {isBuildMode && hovered && type === "empty" && (
+            <group position={[0, 0.2, 0]} ref={hoveredBuildingRef}>
+              <BuildingModel type="blacksmith" />
+            </group>
+          )}
+
           {children}
         </group>
       )}
