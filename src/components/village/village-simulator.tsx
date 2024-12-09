@@ -26,7 +26,7 @@ const VillageSimulator = () => {
   const {resources, updateResources } = useResources()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null)
-  const {isEditMode } = useEditMode()
+  const { isEditMode, isBuildMode } = useEditMode()
 
   // LOAD TILES FROM API
   useEffect(() => {
@@ -163,7 +163,7 @@ const VillageSimulator = () => {
         if (tile.type === 'empty') {
           setSelectedTileId(id)
           setDialogOpen(true)
-        } else if (tile.type === 'grain' && 
+        } else if (tile.type === 'grain' && (!isBuildMode && !isEditMode) &&
                    tile.resources! > 0 && 
                    (!tile.lastHarvested || now - tile.lastHarvested > HARVEST_COOLDOWN)) {
           // Harvest grain logic
@@ -187,7 +187,7 @@ const VillageSimulator = () => {
               return updated
             })
           }, HARVEST_COOLDOWN)
-        } else if (tile.type === 'forest' && 
+        } else if (tile.type === 'forest' && (!isBuildMode && !isEditMode) &&
                    tile.resources! > 0 && 
                    (!tile.lastHarvested || now - tile.lastHarvested > FOREST_CUT)) {
           // Harvest forest logic
@@ -216,7 +216,7 @@ const VillageSimulator = () => {
 
       return newTiles
     })
-  }, [tiles, isEditMode, updateResources, resources.grain, resources.wood])
+  }, [tiles, isEditMode, handleClickOnEmptyTile, handleBorderTileClick, isBuildMode, updateResources, resources.grain, resources.wood])
   
   const displayedTiles = tiles.filter(tile => {
     if(isEditMode) return true
